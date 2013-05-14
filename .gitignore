@@ -4,3 +4,11 @@
 *.jar
 *.war
 *.ear
+
+# Gradle
+.gradle
+
+# Build
+build
+test-tmp
+

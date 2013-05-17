@@ -3,27 +3,35 @@ package meez.rxvertx.java.pipeline;
 import org.vertx.java.core.Handler;
 import rx.Observable;
 
-/** HandlerPipeline */
-public abstract class HandlerPipeline<T,R> implements Handler<T> {
+/** HandlerPipeline 
+ * 
+ * <p>Used to build a workflow from a handler that handles its own outpute e.g. a http request</p> 
+ * 
+ **/
+public abstract class HandlerPipeline<R,S,T> implements Handler<S> {
 
   // Processing
   
   /** Raw msg */
-  public abstract Observable<R> process(T msg);
+  public abstract Observable<T> process(R msg);
  
   /** Send reply */
-  public abstract void sendReply(final T src, final Observable<R> resp);
+  public abstract void sendReply(final Observable<T> resp, final R src);
 
+  /** Map the core Handler<> type to the Rx wrapper */ 
+  protected abstract R wrap(S in);
+  
   // Handler implementation
   
-  public void handle(T msg) { 
-    Observable<R> res;
+  public void handle(S msg) { 
+    Observable<T> res;
     try {
-      res=process(msg);
+      res=process(wrap(msg));
     }
+    // If an error happens inside process then ensure response is sent
     catch(Exception e) {
       res=Observable.error(e);
     }
-    sendReply(msg,res);
+    sendReply(res,wrap(msg));
   }
 }

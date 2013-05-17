@@ -1,12 +1,12 @@
 package meez.rxvertx.java.subject;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.vertx.java.core.Handler;
 import rx.Observer;
 import rx.Subscription;
 import rx.subjects.PublishSubject;
 import rx.util.functions.Func1;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 /** StreamSubject 
  * 
@@ -28,9 +28,22 @@ public class StreamSubject<T> extends PublishSubject<T> implements Handler<T> {
     super(onSubscribe,observers);
   }
   
-  /** Manual complete */
-  public void complete() {
-    onCompleted();
+  /** Return a completion handler */
+  public Handler<Void> completionHandler() {
+    return new Handler<Void>() {
+      public void handle(Void aVoid) {
+        onCompleted();
+      }
+    };
+  }
+  
+  /** Return an exception handler */
+  public Handler<Exception> exceptionHandler() {
+    return new Handler<Exception>() {
+      public void handle(Exception e) {
+        onError(e);
+      }
+    };
   }
   
   // Handler implementation

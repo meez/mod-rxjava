@@ -1,9 +1,5 @@
 package meez.rxvertx.java;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.concurrent.atomic.AtomicLong;
-
 import meez.rxvertx.java.subject.StreamSubject;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.vertx.java.core.Handler;
@@ -14,7 +10,13 @@ import org.vertx.java.core.streams.ReadStream;
 import org.vertx.java.core.streams.WriteStream;
 import rx.Observable;
 import rx.subjects.PublishSubject;
-import rx.util.functions.*;
+import rx.util.functions.Action0;
+import rx.util.functions.Action1;
+import rx.util.functions.Func1;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.concurrent.atomic.AtomicLong;
 
 /** RxSupport */
 public class RxSupport {
@@ -98,7 +100,12 @@ public class RxSupport {
   public static Func1<Buffer,JsonObject> decodeJson(final String charset) {
     return new Func1<Buffer,JsonObject>() {
       public JsonObject call(Buffer in) {
-        return new JsonObject(in.toString(charset));
+        try {
+          return new JsonObject(in.toString(charset));
+        }
+        catch(Exception e) {
+          throw new RxException("Unable to decode json request (e="+e+")");
+        }
       }
     };
   }

@@ -22,11 +22,25 @@ public class ReplySubject<T> extends HandlerSubject<T> implements Handler<T> {
   protected ReplySubject() {
     super(new SubjectSupport.DelegateSubscriptionFunc<T>());
   }
+  
+  /** Allow manual error */
+  public void fail(Exception e) {
+    onHandlerFailed(e);
+  }
+  
+  /** Return exception handler */
+  public Handler<Exception> exceptionHandler() {
+    return new Handler<Exception>() {
+      public void handle(Exception e) {
+        onHandlerFailed(e);
+      }
+    };
+  }
 
   // Handler implementation
   
   /** Single response completes subject for all subscribers */
-  public void handle(T value) {
+  public void handle(T value) { 
     onHandlerCompleted(value);
   }
 }

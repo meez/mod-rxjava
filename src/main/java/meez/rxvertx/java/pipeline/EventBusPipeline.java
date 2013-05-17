@@ -8,7 +8,7 @@ import rx.Observable;
 import rx.util.functions.Action1;
 
 /** Pipeline for handling BusMod requests */
-public class EventBusPipeline<T> extends HandlerPipeline<Message<T>,T> {
+public class EventBusPipeline<T> extends HandlerPipeline<Message<T>,Message<T>,T> {
   
   private final static Logger log=LoggerFactory.getLogger(EventBusPipeline.class);
   
@@ -18,7 +18,7 @@ public class EventBusPipeline<T> extends HandlerPipeline<Message<T>,T> {
   public Observable<T> process(Message<T> msg) {
     return processRequest(msg.body);
   }
-  
+
   /** Override to process the request */
   public Observable<T> processRequest(T value) {
     return processRequest(Observable.just(value));
@@ -32,7 +32,7 @@ public class EventBusPipeline<T> extends HandlerPipeline<Message<T>,T> {
   // Processing
   
   /** Send reply */
-  public void sendReply(final Message<T> src, final Observable<T> resp) {
+  public void sendReply(final Observable<T> resp, final Message<T> src) {
     resp.subscribe(renderValue(src),renderError(src));
   }
   
@@ -54,7 +54,14 @@ public class EventBusPipeline<T> extends HandlerPipeline<Message<T>,T> {
       }
     };
   }
+
+  // Internal 
   
+  @Override
+  protected Message<T> wrap(Message<T> in) {
+    return in;
+  }
+
   // Handler implementation
 
   /** Handle message */
@@ -66,6 +73,6 @@ public class EventBusPipeline<T> extends HandlerPipeline<Message<T>,T> {
     catch(Exception e) {
       res=Observable.error(e);
     }
-    sendReply(msg,res);
+    sendReply(res,msg);
   }
 }

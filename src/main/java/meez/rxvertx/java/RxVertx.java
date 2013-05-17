@@ -1,7 +1,5 @@
 package meez.rxvertx.java;
 
-import meez.rxvertx.java.http.RxHttpClient;
-import meez.rxvertx.java.http.RxHttpServer;
 import meez.rxvertx.java.io.RxFileSystem;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
@@ -35,16 +33,6 @@ public class RxVertx {
     return eventBus;
   }
   
-  /** Return Rx extended HttpServer */
-  public RxHttpServer createHttpServer() {
-    return new RxHttpServer(nested.createHttpServer());
-  }
-  
-  /** Return Rx extended HttpClient */
-  public RxHttpClient createHttpClient() {
-    return new RxHttpClient(nested.createHttpClient());
-  }
-
   /** Return SharedData */
   public SharedData sharedData() {
     return nested.sharedData();

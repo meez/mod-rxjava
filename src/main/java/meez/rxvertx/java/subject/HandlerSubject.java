@@ -1,11 +1,15 @@
 package meez.rxvertx.java.subject;
 
-import java.util.HashMap;
-
-import rx.*;
+import rx.Observable;
+import rx.Observer;
+import rx.Subscription;
 import rx.subscriptions.Subscriptions;
 import rx.util.AtomicObservableSubscription;
 import rx.util.functions.Func1;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Base class HandlerSubject.
  * 
@@ -18,7 +22,7 @@ public class HandlerSubject<T> extends Observable<T> {
   /** Real subscription handler */
   protected class SubscriptionFunc implements Func1<Observer<T>, Subscription> {
     @Override
-    public Subscription call(Observer<T> observer) {
+    public Subscription call(final Observer<T> observer) {
       synchronized(observers) {
         // Check existing state
         switch(state) {
@@ -52,7 +56,9 @@ public class HandlerSubject<T> extends Observable<T> {
   
   enum State { READY, COMPLETE, FAILED };
   
-  private final HashMap<Subscription, Observer<T>> observers=new HashMap<Subscription,Observer<T>>();
+private final String id;  
+  
+  private final ConcurrentHashMap<Subscription, Observer<T>> observers=new ConcurrentHashMap<Subscription,Observer<T>>();
   private State state;
   private T result;
   private Exception error;
@@ -62,6 +68,8 @@ public class HandlerSubject<T> extends Observable<T> {
     super(fnDelegate);
     // Once super() has been called we can reveal the real subscription func 
     fnDelegate.wrap(new SubscriptionFunc());
+    
+this.id=toString();    
     
     this.state=State.READY;
     this.result=null;
@@ -76,8 +84,11 @@ public class HandlerSubject<T> extends Observable<T> {
       this.result=value;
     }
     // Notify remaining observers (there will be no new observers)
-    for (Observer<T> observer : observers.values()) {
+    List<Observer<T>> obs=new ArrayList<Observer<T>>(observers.values());
+    for (Observer<T> observer : obs) {
       observer.onNext(value);
+    }
+    for (Observer<T> observer : obs) {
       observer.onCompleted();
     }
     observers.clear();
@@ -90,7 +101,7 @@ public class HandlerSubject<T> extends Observable<T> {
       error=e;
     }
     // Notify remaining observers (there will be no new observers)
-    for (Observer<T> observer : observers.values()) {
+    for (Observer<T> observer : new ArrayList<Observer<T>>(observers.values())) {
       observer.onError(e);
     }
     observers.clear();

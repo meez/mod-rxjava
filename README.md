@@ -100,7 +100,7 @@ server=rx.createHttpServer().requestHandler(new HttpServerPipeline<JsonObject>()
     
     return request
       // Fetch the request body into a Json Object
-      .flatMap(RxHttpSupport.downloadJson())
+      .flatMap(RxHttpSupport.decodeBody())
       // Simple pong responder
       .map(new Func1<JsonObject,JsonObject>() {
         public JsonObject call(JsonObject in) {

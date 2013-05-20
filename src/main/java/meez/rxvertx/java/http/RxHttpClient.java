@@ -14,43 +14,36 @@ import java.util.Map;
 public class RxHttpClient {
   
   /** Nested */
-  private final HttpClient nested;
+  private final HttpClient core;
   
   /** Create new RxHttpClient */
   public RxHttpClient(HttpClient nested) {
-    this.nested=nested;
+    this.core =nested;
   }
   
   /** Return core */
   public HttpClient coreHttpClient() {
-    return this.nested;
+    return this.core;
   }
 
   /** Convenience wrapper */
   public void close() {
-    this.nested.close();
+    this.core.close();
   }
   
   // Rx extensions
   
-  /** General exception handler */
-  public Observable<Exception> exceptionHandler() {
-    ResultMemoizeHandler<Exception> rh=new ResultMemoizeHandler<Exception>();
-    nested.exceptionHandler(rh);
-    return Observable.create(rh.subscribe);
-  }
-
   /** Connect to WebSocket */
   public Observable<WebSocket> connectWebsocket(String s) {
     ResultMemoizeHandler<WebSocket> rh=new ResultMemoizeHandler<WebSocket>();
-    nested.connectWebsocket(s,rh);
+    core.connectWebsocket(s,rh);
     return Observable.create(rh.subscribe);
   }
 
   /** Connect to WebSocket w/Version */
   public Observable<WebSocket> connectWebsocket(String s, WebSocketVersion webSocketVersion) {
     ResultMemoizeHandler<WebSocket> rh=new ResultMemoizeHandler<WebSocket>();
-    nested.connectWebsocket(s,webSocketVersion,rh);
+    core.connectWebsocket(s,webSocketVersion,rh);
     return Observable.create(rh.subscribe);
   }
 
@@ -62,19 +55,19 @@ public class RxHttpClient {
         complete(new RxHttpClientResponse(r));
       }
     };
-    nested.getNow(s,rh);
+    core.getNow(s,rh);
     return Observable.create(rh.subscribe);
   }
 
   /** Fetch URL using simple GET w/Params */
-  public Observable<RxHttpClientResponse> getNow(String s, Map<String, ? extends Object> params) {
+  public Observable<RxHttpClientResponse> getNow(String s, Map<String, ? extends Object> headers) {
     final MemoizeHandler<RxHttpClientResponse,HttpClientResponse> rh=new MemoizeHandler<RxHttpClientResponse,HttpClientResponse>() {
       @Override
       public void handle(HttpClientResponse r) {
         complete(new RxHttpClientResponse(r));
       }
     };
-    nested.getNow(s,params,rh);
+    core.getNow(s,headers,rh);
     return Observable.create(rh.subscribe);
   }
 
@@ -193,7 +186,7 @@ public class RxHttpClient {
       }
     };
     
-    HttpClientRequest req=nested.request(method,uri,rh);
+    HttpClientRequest req= core.request(method,uri,rh);
     
     // Use the builder to create the full request (or start upload)
     // We assume builder will call request.end()

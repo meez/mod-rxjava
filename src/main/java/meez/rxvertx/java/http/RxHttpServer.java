@@ -25,7 +25,7 @@ public class RxHttpServer  {
   
   // RxJava Extensions
   
-  public Observable<RxHttpServerRequest> requestHandler() {
+  public Observable<RxHttpServerRequest> http() {
     return Observable.create(
       new SingleObserverHandler<RxHttpServerRequest, HttpServerRequest>() {
           public void register() {
@@ -41,7 +41,7 @@ public class RxHttpServer  {
     );
   }
 
-  public Observable<ServerWebSocket> websocketHandler() {
+  public Observable<ServerWebSocket> websocket() {
     return Observable.create(
       new SingleObserverHandler<ServerWebSocket, ServerWebSocket>() {
           public void register() {

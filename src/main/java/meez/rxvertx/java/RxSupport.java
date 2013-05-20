@@ -1,6 +1,6 @@
 package meez.rxvertx.java;
 
-import meez.rxvertx.java.subject.StreamSubject;
+import meez.rxvertx.java.impl.SingleObserverHandler;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
@@ -13,6 +13,7 @@ import rx.subjects.PublishSubject;
 import rx.util.functions.Action0;
 import rx.util.functions.Action1;
 import rx.util.functions.Func1;
+import rx.util.functions.Func2;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -23,6 +24,14 @@ public class RxSupport {
   
   // Streams
 
+  /** Accumulator that merges buffers */
+  public static Func2<Buffer, Buffer, Buffer> mergeBuffers=new Func2<Buffer,Buffer,Buffer>() {
+    public Buffer call(Buffer b1, Buffer b2) {
+      b1.appendBuffer(b2);
+      return b2;
+    }
+  };
+    
   /** Stream Observable<Buffer> to WriteStream.
    *
    * <p>This method does not handle writeQueueFull condition</p>  
@@ -54,31 +63,37 @@ public class RxSupport {
   }
 
   /** Convert ReadStream to Observable */
-  public static Observable<Buffer> toObservable(ReadStream rs) {
-    final StreamSubject<Buffer> rx=StreamSubject.create();
-    // Stream buffers to the Observable
-    rs.dataHandler(rx);
-    // Map exception
-    rs.exceptionHandler(new Handler<Exception>() {
-      public void handle(Exception e) {
-        rx.onError(e);
+  public static Observable<Buffer> toObservable(final ReadStream rs) {
+    final SingleObserverHandler<Buffer,Buffer> rh=new SingleObserverHandler<Buffer,Buffer>() {
+      @Override
+      public void register() {
+        rs.dataHandler(this);
+        rs.exceptionHandler(new Handler<Exception>() {
+          public void handle(Exception e) {
+            fail(e);
+          }
+        });
+        rs.endHandler(new Handler<Void>() {
+          public void handle(Void v) {
+            complete();
+          }
+        });
       }
-    });
-    // Map complete
-    rs.endHandler(new Handler<Void>() {
-      public void handle(Void v) {
-        rx.onCompleted();
+      @Override
+      public void clear() {
+        try {
+          rs.dataHandler(null);
+          rs.exceptionHandler(null);
+          rs.endHandler(null);
+        }
+        catch(Exception e) {
+          // Clearing handlers after stream closed causes issues for some (eg AsyncFile) so silently drop errors
+        }
       }
-    });
-    return rx;
+    };
+    
+    return Observable.create(rh.subscribe);
   }
-  
-  /** Inline Func1 */
-  public static Func1<ReadStream, Observable<Buffer>> readStream=new Func1<ReadStream,Observable<Buffer>>() {
-    public Observable<Buffer> call(ReadStream readStream) {
-      return toObservable(readStream);
-    }
-  };
   
   // JSON 
 	
@@ -111,7 +126,7 @@ public class RxSupport {
   }
 
   /** Object mapper */
-  public static <T> Func1<T,Buffer> objectToJson(final Class<T> def)
+  public static <T> Func1<T,Buffer> objectToRawJson(final Class<T> def)
   {
     return new Func1<T,Buffer>() {
       private final ObjectMapper om=new ObjectMapper();
@@ -128,7 +143,7 @@ public class RxSupport {
   }
 
   /** Object mapper */
-  public static <T> Func1<Buffer,T> jsonToObject(final Class<T> def)
+  public static <T> Func1<Buffer,T> rawJsonToObject(final Class<T> def)
   {
     return new Func1<Buffer,T>() {
       private final ObjectMapper om=new ObjectMapper();

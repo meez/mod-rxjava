@@ -2,13 +2,10 @@ package meez.rxvertx.java.http;
 
 import meez.rxvertx.java.RxException;
 import meez.rxvertx.java.RxSupport;
-import meez.rxvertx.java.subject.ReplySubject;
-import meez.rxvertx.java.subject.StreamSubject;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpClientRequest;
 import org.vertx.java.core.http.HttpClientResponse;
 import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.http.impl.HttpReadStreamBase;
 import org.vertx.java.core.json.JsonObject;
 import rx.Observable;
 import rx.util.functions.Action1;
@@ -26,7 +23,7 @@ public class RxHttpSupport {
       // Must use Rx methods to access stream as Observable
       assert(httpReq instanceof RxHttpServerRequest);
       
-      return ((RxHttpServerRequest)httpReq).asObservableBody();
+      return ((RxHttpServerRequest)httpReq).asObservable().reduce(RxSupport.mergeBuffers);
     }
   };
   
@@ -66,12 +63,9 @@ public class RxHttpSupport {
         // Must use Rx methods to access stream as Observable
         assert(httpResp instanceof RxHttpClientResponse);
         
-        if (httpResp.statusCode>=400)
-          throw new RxException("HTTP request failed (code="+httpResp.statusCode+",msg="+httpResp.statusMessage+")");
-        else if (httpResp.statusCode>=300)
-          throw new RxException("HTTP redirect not supported (code="+httpResp.statusCode+",msg="+httpResp.statusMessage+",location="+httpResp.headers().get("Location")+")");
+        checkResponse(httpResp);
         
-        return ((RxHttpClientResponse)httpResp).asObservableStream();
+        return ((RxHttpClientResponse)httpResp).asObservable();
       }
     };
   }
@@ -83,7 +77,7 @@ public class RxHttpSupport {
 
         checkResponse(httpResp);
         
-        return httpResp.asObservableBody();
+        return httpResp.asObservable().reduce(RxSupport.mergeBuffers);
       }
     };
   }
@@ -96,36 +90,11 @@ public class RxHttpSupport {
         checkResponse(httpResp);
         
         // TODO: Extract charset from Content-type
-        return httpResp.asObservableBody().map(RxSupport.decodeJson("utf8"));
+        return httpResp.asObservable().reduce(RxSupport.mergeBuffers).map(RxSupport.decodeJson("utf8"));
       }
     };
   }
 
-  // Internal
-  
-  /** Convert HttpReadStreamBase to Observable<Buffer> Stream Subject */
-  protected static StreamSubject<Buffer> toStream(HttpReadStreamBase src) {
-
-    StreamSubject<Buffer> stream=StreamSubject.create();
-    
-    src.dataHandler(stream);
-    src.endHandler(stream.completionHandler());
-    src.exceptionHandler(stream.exceptionHandler());
-    
-    return stream;
-  }
-  
-  /** Convert HttpReadStreamBase to Observable<Buffer> Reply Subject */
-  protected static ReplySubject<Buffer> toBody(HttpReadStreamBase src) {
-
-    ReplySubject<Buffer> body=ReplySubject.create();
-    
-    src.bodyHandler(body);
-    src.exceptionHandler(body.exceptionHandler());
-    
-    return body;
-  }
-  
   // Utility
   
   /** Validate response */

@@ -1,7 +1,7 @@
 package meez.rxvertx.java.io;
 
 import meez.rxvertx.java.RxSupport;
-import meez.rxvertx.java.subject.AsyncResultSubject;
+import meez.rxvertx.java.impl.AsyncResultMemoizeHandler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.file.AsyncFile;
 import rx.Observable;
@@ -12,9 +12,9 @@ public class RxFileSupport {
   
   /** Close a file */
   public static Observable<Void> closeRx(AsyncFile f) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    f.close(rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    f.close(rh);
+    return Observable.create(rh.subscribe);
   }
   
   /** Read a file stream */

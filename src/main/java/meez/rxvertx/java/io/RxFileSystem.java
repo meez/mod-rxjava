@@ -1,9 +1,12 @@
 package meez.rxvertx.java.io;
 
-import meez.rxvertx.java.subject.AsyncResultSubject;
+import meez.rxvertx.java.impl.AsyncResultMemoizeHandler;
 import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.file.*;
+import org.vertx.java.core.file.AsyncFile;
+import org.vertx.java.core.file.FileProps;
+import org.vertx.java.core.file.FileSystem;
+import org.vertx.java.core.file.FileSystemProps;
 import rx.Observable;
 
 /** RxJava extension to FileSystem */
@@ -20,189 +23,189 @@ public class RxFileSystem implements FileSystem {
   // Rx extensions
   
   public Observable<Void> copyRx(String s, String s1) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.copy(s,s1,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.copy(s,s1,rh);
+    return Observable.create(rh);
   }
 
   public Observable<Void> copyRx(String s, String s1, boolean b) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.copy(s,s1,b,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.copy(s,s1,b,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> moveRx(String s, String s1) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.move(s,s1,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.move(s,s1,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> truncateRx(String s, long l) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.truncate(s,l,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.truncate(s,l,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> chmodRx(String s, String s1) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.chmod(s,s1,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.chmod(s,s1,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> chmodRx(String s, String s1, String s2) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.chmod(s,s1,s2,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.chmod(s,s1,s2,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<FileProps> propsRx(String s) {
-    AsyncResultSubject<FileProps> rx=AsyncResultSubject.create();
-    nested.props(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<FileProps> rh=new AsyncResultMemoizeHandler<FileProps>();
+    nested.props(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<FileProps> lpropsRx(String s) {
-    AsyncResultSubject<FileProps> rx=AsyncResultSubject.create();
-    nested.lprops(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<FileProps> rh=new AsyncResultMemoizeHandler<FileProps>();
+    nested.lprops(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> linkRx(String s, String s1) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.link(s,s1,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.link(s,s1,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> symlinkRx(String s, String s1) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.symlink(s,s1,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.symlink(s,s1,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> unlinkRx(String s) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.unlink(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.unlink(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<String> readSymlinkRx(String s) {
-    AsyncResultSubject<String> rx=AsyncResultSubject.create();
-    nested.readSymlink(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<String> rh=new AsyncResultMemoizeHandler<String>();
+    nested.readSymlink(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> deleteRx(String s) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.delete(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.delete(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> deleteRx(String s, boolean b) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.delete(s,b,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.delete(s,b,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> mkdirRx(String s) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.mkdir(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.mkdir(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> mkdirRx(String s, boolean b) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.mkdir(s,b,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.mkdir(s,b,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> mkdirRx(String s, String s1) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.mkdir(s,s1,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.mkdir(s,s1,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> mkdirRx(String s, String s1, boolean b) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.mkdir(s,s1,b,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.mkdir(s,s1,b,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<String[]> readDirRx(String s) {
-    AsyncResultSubject<String[]> rx=AsyncResultSubject.create();
-    nested.readDir(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<String[]> rh=new AsyncResultMemoizeHandler<String[]>();
+    nested.readDir(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<String[]> readDirRx(String s, String s1) {
-    AsyncResultSubject<String[]> rx=AsyncResultSubject.create();
-    nested.readDir(s,s1,rx);
-    return rx;
+    AsyncResultMemoizeHandler<String[]> rh=new AsyncResultMemoizeHandler<String[]>();
+    nested.readDir(s,s1,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Buffer> readFileRx(String s) {
-    AsyncResultSubject<Buffer> rx=AsyncResultSubject.create();
-    nested.readFile(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Buffer> rh=new AsyncResultMemoizeHandler<Buffer>();
+    nested.readFile(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> writeFileRx(String s, Buffer buffer) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.writeFile(s,buffer,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.writeFile(s,buffer,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<AsyncFile> openRx(String s) {
-    AsyncResultSubject<AsyncFile> rx=AsyncResultSubject.create();
-    nested.open(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<AsyncFile> rh=new AsyncResultMemoizeHandler<AsyncFile>();
+    nested.open(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<AsyncFile> openRx(String s, String s1) {
-    AsyncResultSubject<AsyncFile> rx=AsyncResultSubject.create();
-    nested.open(s,s1,rx);
-    return rx;
+    AsyncResultMemoizeHandler<AsyncFile> rh=new AsyncResultMemoizeHandler<AsyncFile>();
+    nested.open(s,s1,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<AsyncFile> openRx(String s, String s1, boolean b) {
-    AsyncResultSubject<AsyncFile> rx=AsyncResultSubject.create();
-    nested.open(s,s1,b,rx);
-    return rx;
+    AsyncResultMemoizeHandler<AsyncFile> rh=new AsyncResultMemoizeHandler<AsyncFile>();
+    nested.open(s,s1,b,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<AsyncFile> openRx(String s, String s1, boolean b, boolean b1, boolean b2) {
-    AsyncResultSubject<AsyncFile> rx=AsyncResultSubject.create();
-    nested.open(s,s1,b,b1,b2,rx);
-    return rx;
+    AsyncResultMemoizeHandler<AsyncFile> rh=new AsyncResultMemoizeHandler<AsyncFile>();
+    nested.open(s,s1,b,b1,b2,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<AsyncFile> openRx(String s, String s1, boolean b, boolean b1, boolean b2, boolean b3) {
-    AsyncResultSubject<AsyncFile> rx=AsyncResultSubject.create();
-    nested.open(s,s1,b,b1,b2,b3,rx);
-    return rx;
+    AsyncResultMemoizeHandler<AsyncFile> rh=new AsyncResultMemoizeHandler<AsyncFile>();
+    nested.open(s,s1,b,b1,b2,b3,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> createFileRx(String s) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.createFile(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.createFile(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> createFileRx(String s, String s1) {
-    AsyncResultSubject<Void> rx=AsyncResultSubject.create();
-    nested.createFile(s,s1,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
+    nested.createFile(s,s1,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Boolean> existsRx(String s) {
-    AsyncResultSubject<Boolean> rx=AsyncResultSubject.create();
-    nested.exists(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<Boolean> rh=new AsyncResultMemoizeHandler<Boolean>();
+    nested.exists(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<FileSystemProps> fsPropsRx(String s) {
-    AsyncResultSubject<FileSystemProps> rx=AsyncResultSubject.create();
-    nested.fsProps(s,rx);
-    return rx;
+    AsyncResultMemoizeHandler<FileSystemProps> rh=new AsyncResultMemoizeHandler<FileSystemProps>();
+    nested.fsProps(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   // FileSystem implementation

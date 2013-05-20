@@ -45,7 +45,7 @@ public class HttpTestClient extends TestClientBase {
     }
   }
 
-  private void startPipelineServer(HttpServerPipeline pipeline, int port) {
+  private <T> void startPipelineServer(HttpServerPipeline<T> pipeline, int port) {
     server = new RxHttpServer(vertx.createHttpServer());
     server.coreHttpServer().requestHandler(pipeline).listen(port, "localhost");
   }

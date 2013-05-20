@@ -14,7 +14,9 @@ This allows VertX developers to use the RxJava type-safe composable API to build
 The module name is `com.meez.mod-rxjava`.
 
 ## Status
-The module is a work-in-progress provided for developer access and to get feedback on the design and implementation. The master release is 1.3.0 based on the 1.3.1.final VertX release.
+The module is for use with VertX 1.3.1.final only.
+
+For VertX 2.0.0 use the [mod-rxvertx](https://github.com/vert-x/mod-rxvertx) module instead.
 
 Currently Observable wrappers are provided for
 
@@ -22,14 +24,14 @@ Currently Observable wrappers are provided for
 - FileSystem
 - HttpServer
 - HttpClient
+- NetServer
+- NetClient
 
 There are also base Observable adapters that map Handler<T> and AsyncResultHandler<T> to Observable<T> that can be used to call other Handler based APIs.
 
 In future, additional wrappers will be provided for
 
 - Timer 
-- NetServer
-- NetClient
 - SockJSServer
 
 ## Usage
@@ -65,23 +67,6 @@ are available in the form
 Observable<T> method(args...)
 ```
 
-### Subjects ###
-
-For cases where there is no Rx wrapper available. You can use the `meez.rxvertx.java.subject` package to create the 
-appropriate adapter e.g.
-
-```java
-NetServer ns=vertx.createNetServer();
-
-// Subject will emit onNext<NetSocket> for each connection
-StreamSubject<NetSocket> rx=StreamSubject.create();
-
-ns.connectHandler(rx);
-
-// Connection handler
-rx.subscribe(new Action1<NetSocket>() {...});
-```
-
 ### Helper ###
 The support class `RxSupport` provides several helper methods for some standard tasks
 
@@ -114,10 +99,8 @@ server=rx.createHttpServer().requestHandler(new HttpServerPipeline<JsonObject>()
   public Observable<JsonObject> process(Observable<HttpServerRequest> request) {
     
     return request
-      // Fetch the request body into a Buffer
-      .flatMap(RxHttpSupport.decodeBody)
-      // Decode the buffer into a single JsonObject
-      .map(RxSupport.decodeJson("utf8"))
+      // Fetch the request body into a Json Object
+      .flatMap(RxHttpSupport.downloadJson())
       // Simple pong responder
       .map(new Func1<JsonObject,JsonObject>() {
         public JsonObject call(JsonObject in) {

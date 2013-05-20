@@ -1,48 +1,65 @@
 package meez.rxvertx.java.http;
 
-import meez.rxvertx.java.subject.ReplySubject;
-import meez.rxvertx.java.subject.StreamSubject;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.http.*;
+import meez.rxvertx.java.impl.ResultMemoizeHandler;
+import meez.rxvertx.java.impl.SingleObserverHandler;
+import org.vertx.java.core.http.HttpServer;
+import org.vertx.java.core.http.HttpServerRequest;
+import org.vertx.java.core.http.ServerWebSocket;
 import rx.Observable;
 
 /** RxHttpServer */
 public class RxHttpServer  {
   
   /** Nested */
-  private final HttpServer nested;
+  private final HttpServer core;
   
   /** Create new RxHttpServer */
   public RxHttpServer(HttpServer server) {
-    this.nested=server;
+    this.core=server;
   }
   
   /** Return code */
   public HttpServer coreHttpServer() {
-    return this.nested;
+    return this.core;
   }
   
   // RxJava Extensions
   
   public Observable<RxHttpServerRequest> requestHandler() {
-    final StreamSubject<RxHttpServerRequest> rx=StreamSubject.create();
-    nested.requestHandler(new Handler<HttpServerRequest>() {
-      public void handle(HttpServerRequest httpReq) {
-        rx.handle(new RxHttpServerRequest(httpReq));
-      }
-    });
-    return rx;
+    return Observable.create(
+      new SingleObserverHandler<RxHttpServerRequest, HttpServerRequest>() {
+          public void register() {
+            core.requestHandler(this);
+          }
+          public void clear() {
+            core.requestHandler(null);
+          }
+          public RxHttpServerRequest wrap(HttpServerRequest r) {
+            return new RxHttpServerRequest(r);
+          }
+        }.subscribe      
+    );
   }
 
   public Observable<ServerWebSocket> websocketHandler() {
-    StreamSubject<ServerWebSocket> rx=StreamSubject.create();
-    nested.websocketHandler(rx);
-    return rx;
+    return Observable.create(
+      new SingleObserverHandler<ServerWebSocket, ServerWebSocket>() {
+          public void register() {
+            core.websocketHandler(this);
+          }
+          public void clear() {
+            core.websocketHandler(null);
+          }
+          public ServerWebSocket wrap(ServerWebSocket s) {
+            return s;
+          }
+        }.subscribe      
+    );
   }
 
   public Observable<Void> close() {
-    ReplySubject<Void> rx=ReplySubject.create();
-    nested.close(rx);
-    return rx;
+    ResultMemoizeHandler<Void> rh=new ResultMemoizeHandler<Void>();
+    core.close(rh);
+    return Observable.create(rh.subscribe);
   }
 }

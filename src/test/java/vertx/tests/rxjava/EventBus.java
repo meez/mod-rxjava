@@ -1,17 +1,22 @@
 package vertx.tests.rxjava;
 
-import java.util.*;
-
-import meez.rxvertx.java.*;
+import meez.rxvertx.java.RxEventBus;
+import meez.rxvertx.java.RxTestSupport;
+import meez.rxvertx.java.RxVertx;
 import meez.rxvertx.java.pipeline.EventBusPipeline;
-import meez.rxvertx.java.subject.StreamSubject;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.testframework.TestClientBase;
 import rx.Observable;
-import rx.util.functions.*;
+import rx.util.functions.Action0;
+import rx.util.functions.Action1;
+import rx.util.functions.Func1;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /** EventBus */
 public class EventBus extends TestClientBase {
@@ -40,6 +45,7 @@ public class EventBus extends TestClientBase {
       // onNext
       new Action1<Object>() {
         public void call(Object v) {
+          
           tu.azzert(!exp.isEmpty());
           tu.azzert(v!=null);
           
@@ -68,20 +74,10 @@ public class EventBus extends TestClientBase {
       // onCompleted
       new Action0() {
         public void call() {
+          System.out.println("Server complete");
           tu.azzert(exp.isEmpty());
         }
       });
-  }
-  
-  /** Unregister fn */
-  protected <T> Action0 fnUnregister(final RxEventBus eb, final String address, final StreamSubject<Message<T>> in) {
-    return new Action0() {
-      public void call() {
-        eb.unregisterHandler(address,in);
-        in.onCompleted();
-        tu.testComplete();
-      }
-    };
   }
   
   protected void azzertEquals(Object a, Object b) {
@@ -107,6 +103,23 @@ public class EventBus extends TestClientBase {
       public void call(Message<JsonObject> in) {
         System.out.println("loopback("+expected+")="+in.body);
         azzertEquals(expected,in.body);
+      }
+    };
+  }
+  
+  protected Action0 completeTest() {
+    return new Action0 () {
+      public void call() {
+        System.out.println("test complete");
+        tu.testComplete();
+      }
+    };
+  }
+
+  protected Action0 checkpointTest() {
+    return new Action0 () {
+      public void call() {
+        System.out.println("test checkpoint");
       }
     };
   }
@@ -136,11 +149,11 @@ public class EventBus extends TestClientBase {
     
     final RxEventBus eb=rxv.eventBus();
     
-    final StreamSubject<Message<String>> server=eb.registerHandlerRx("foo");
+    final Observable<Message<String>> server=eb.toObservable("send");
     
-    assertOne(server,"bar",fnUnregister(eb,"foo",server));
+    assertOne(server,"bar", completeTest());
     
-    eb.send("foo","bar");
+    eb.send("send","bar");
   }
 
   /** Data-type loopback test */
@@ -148,7 +161,7 @@ public class EventBus extends TestClientBase {
     
     final RxEventBus eb=rxv.eventBus();
     
-    final StreamSubject<Message<Object>> server=eb.registerHandlerRx("foo");
+    final Observable<Message<Object>> server=eb.toObservable("sendrx");
     
     JsonObject typeJsonObject=new JsonObject().putString("a","str").putNumber("b",-100);
     JsonArray typeJsonArray=new JsonArray().addObject(typeJsonObject);
@@ -167,10 +180,10 @@ public class EventBus extends TestClientBase {
     assertSequence(
       server,
       toList(
+        typeString,
         typeJsonObject,
         typeJsonArray,
         typeBuffer,
-        typeString,
         typeInteger,
         typeLong,
         typeFloat,
@@ -180,100 +193,39 @@ public class EventBus extends TestClientBase {
         typeCharacter,
         typeByteArray,
         typeByte),
-      fnUnregister(eb,"foo",server));
+      completeTest());
     
-    eb.sendRx("foo",typeJsonObject).subscribe(checkLoopBack(typeJsonObject));
-    eb.sendRx("foo",typeJsonArray).subscribe(checkLoopBack(typeJsonArray));
-    eb.sendRx("foo",typeBuffer).subscribe(checkLoopBack(typeBuffer));
-    eb.sendRx("foo",typeString).subscribe(checkLoopBack(typeString));
-    eb.sendRx("foo",typeInteger).subscribe(checkLoopBack(typeInteger));
-    eb.sendRx("foo",typeLong).subscribe(checkLoopBack(typeLong));
-    eb.sendRx("foo",typeFloat).subscribe(checkLoopBack(typeFloat));
-    eb.sendRx("foo",typeDouble).subscribe(checkLoopBack(typeDouble));
-    eb.sendRx("foo",typeBoolean).subscribe(checkLoopBack(typeBoolean));
-    eb.sendRx("foo",typeShort).subscribe(checkLoopBack(typeShort));
-    eb.sendRx("foo",typeCharacter).subscribe(checkLoopBack(typeCharacter));
-    eb.sendRx("foo",typeByteArray).subscribe(checkLoopBack(typeByteArray));
-    eb.sendRx("foo",typeByte).subscribe(checkLoopBack(typeByte));
-    eb.closeRx().subscribe(new Action1<Void>() {
-      public void call(Void aVoid) {
-        System.out.println("RxEventBus closed");
-        tu.testComplete();
-      }
-    });
+    eb.sendRx("sendrx",typeString).subscribe(checkLoopBack(typeJsonObject));
+    eb.sendRx("sendrx",typeJsonObject).subscribe(checkLoopBack(typeJsonObject));
+    eb.sendRx("sendrx",typeJsonArray).subscribe(checkLoopBack(typeJsonArray));
+    eb.sendRx("sendrx",typeBuffer).subscribe(checkLoopBack(typeBuffer));
+    eb.sendRx("sendrx",typeInteger).subscribe(checkLoopBack(typeInteger));
+    eb.sendRx("sendrx",typeLong).subscribe(checkLoopBack(typeLong));
+    eb.sendRx("sendrx",typeFloat).subscribe(checkLoopBack(typeFloat));
+    eb.sendRx("sendrx",typeDouble).subscribe(checkLoopBack(typeDouble));
+    eb.sendRx("sendrx",typeBoolean).subscribe(checkLoopBack(typeBoolean));
+    eb.sendRx("sendrx",typeShort).subscribe(checkLoopBack(typeShort));
+    eb.sendRx("sendrx",typeCharacter).subscribe(checkLoopBack(typeCharacter));
+    eb.sendRx("sendrx",typeByteArray).subscribe(checkLoopBack(typeByteArray));
+    eb.sendRx("sendrx",typeByte).subscribe(checkLoopBack(typeByte));
   }
 
-  public void testRegisterHandlerRx() throws Exception {
+  public void testToObservableLocal() throws Exception {
 
     final RxEventBus eb=rxv.eventBus();
     
-    final StreamSubject<Message<String>> server=eb.registerHandlerRx("foo");
+    final Observable<Message<String>> server=eb.toObservableLocal("ob-local");
 
-    assertSequence(server,toList("all","bar","none"),fnUnregister(eb,"foo",server));
+    assertSequence(server,toList("all","bar","none"),completeTest());
     
-    eb.send("foo","all");
-    eb.send("foo","bar");
-    eb.send("foo","none");
-  }
-  
-  // JSON
-  
-  public static class Pojo {
-    public boolean bool;
-    public int num;
-    public String str;
-
-    public Pojo() {
-    }
-    
-    public Pojo(boolean bool, int num, String str) {
-      this.bool=bool;
-      this.num=num;
-      this.str=str;
-    }
-    
-    public String toString() {
-      return "Pojo("+bool+","+num+","+str+")";
-    }
-    
-    public boolean equals(Object o) {
-      if ((o==null) || ! (o instanceof Pojo))
-        return false;
-      Pojo op=(Pojo)o;
-      return this.bool==op.bool && this.num==op.num && this.str.equals(op.str);
-    }
-  }
-  
-  public void testRxObjectMapping() throws Exception {
-    
-    final RxEventBus eb=rxv.eventBus();
-    
-    final StreamSubject<Message<JsonObject>> server=eb.registerHandlerRx("json");
-
-    server
-      // Decode message to a Buffer
-      .map(RxSupport.unwrapMessage)
-      // then to a POJO
-      .map(RxSupport.jsonToObject(Pojo.class))
-      // Confirm
-      .subscribe(new Action1<Pojo>() {
-          public void call(Pojo in) {
-            tu.azzert(false==in.bool);
-            tu.azzert(-29492==in.num);
-            tu.azzert("bar".equals(in.str));
-            // Sepuku
-            eb.unregisterHandlerRx("json",server);
-            // Done
-            tu.testComplete();
-          }
-        });
-    
-    eb.send("json",new Buffer("{\"bool\":false,\"num\":-29492,\"str\":\"bar\"}".getBytes()));
+    eb.send("ob-local","all");
+    eb.send("ob-local","bar");
+    eb.send("ob-local","none");
   }
   
   // Pipelines
   
-  public void testRxEventBusPipeline() throws Exception {
+  public void testEventBusPipeline() throws Exception {
     
     final RxEventBus eb=rxv.eventBus();
 
@@ -281,6 +233,7 @@ public class EventBus extends TestClientBase {
     eb.registerHandler("/test/ping",new EventBusPipeline<JsonObject>() {
       public Observable<JsonObject> processRequest(Observable<JsonObject> req) {
         // Bounce ping->pong
+        System.out.println("pipeline:ping");
         return req.map(new Func1<JsonObject,JsonObject>() {
           public JsonObject call(JsonObject in) {
             tu.azzert("ping".equals(in.getString("msg")));
@@ -292,13 +245,12 @@ public class EventBus extends TestClientBase {
 
     // Send ping and wait for pong
     eb.sendRx("/test/ping",new JsonObject().putString("msg","ping"))
+      .map(RxTestSupport.traceMap("pipeline:pong"))
       .subscribe(new Action1<Message<JsonObject>>() {
         public void call(Message<JsonObject> in) {
           tu.azzert("pong".equals(in.body.getString("msg")));
           tu.testComplete();
         }
       });
-
-    System.out.println("ping listener registered");            
   }
 }

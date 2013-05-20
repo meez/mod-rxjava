@@ -1,7 +1,6 @@
 package meez.rxvertx.java.http;
 
-import meez.rxvertx.java.subject.ReplySubject;
-import meez.rxvertx.java.subject.StreamSubject;
+import meez.rxvertx.java.RxSupport;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpClientResponse;
@@ -20,12 +19,6 @@ public class RxHttpClientResponse extends HttpClientResponse {
   /** Real response */
   private final HttpClientResponse nested;
   
-  /** Read as stream */
-  private StreamSubject<Buffer> stream;
-  
-  /** Read as body */
-  private ReplySubject<Buffer> body;
-  
   /** Create new HttpClientResponse */
   protected RxHttpClientResponse(HttpClientResponse real) {
     super(real.statusCode,real.statusMessage);
@@ -33,30 +26,9 @@ public class RxHttpClientResponse extends HttpClientResponse {
   }
   
   /** Return observable for accessing the response as a stream of Buffer */
-  public Observable<Buffer> asObservableStream() {
-    // Cannot access as a stream and as a body
-    if (this.body!=null)
-      throw new IllegalStateException("Cannot mix stream and body from same response");
-    if (this.stream!=null)
-      return this.stream;
-    
-    this.stream=RxHttpSupport.toStream(nested);
-    
-    return this.stream;
+  public Observable<Buffer> asObservable() {
+    return RxSupport.toObservable(nested);
   }
-  
-  /** Return observable for accessing the response as a single Buffer */
-  public Observable<Buffer> asObservableBody() {
-    // Cannot access as a stream and as a body
-    if (this.stream!=null)
-      throw new IllegalStateException("Cannot mix stream and body from same response");
-    if (this.body!=null)
-      return this.body;
-    
-    this.body=RxHttpSupport.toBody(nested);
-    
-    return this.body;
-  } 
   
   // HttpClientResponse implementation
   
@@ -78,14 +50,14 @@ public class RxHttpClientResponse extends HttpClientResponse {
   // HttpReadStreamBase implementation
   
   public void bodyHandler(Handler<org.vertx.java.core.buffer.Buffer> bodyHandler) {
-    throw new UnsupportedOperationException("Cannot access bodyHandler() via Rx - use asObservableBody");
+    throw new UnsupportedOperationException("Not supported in Rx - use asObservable");
   }  
   
   // ReadStream implementation
 
   @Override
   public void dataHandler(Handler<Buffer> bufferHandler) {
-    throw new UnsupportedOperationException("Cannot access dataHandler() via Rx - use asObservableStream");
+    throw new UnsupportedOperationException("Not supported in Rx - use asObservable");
   }
 
   @Override
@@ -100,11 +72,11 @@ public class RxHttpClientResponse extends HttpClientResponse {
 
   @Override
   public void exceptionHandler(Handler<Exception> exceptionHandler) {
-    throw new UnsupportedOperationException("Cannot access exceptionHandler() via Rx - use asObservableStream/asObservableBody");
+    throw new UnsupportedOperationException("Not supported in Rx - use asObservable");
   }
 
   @Override
   public void endHandler(Handler<Void> voidHandler) {
-    throw new UnsupportedOperationException("Cannot access endHandler() via Rx - use asObservableStream");
+    throw new UnsupportedOperationException("Not supported in Rx - use asObservable");
   }
 }

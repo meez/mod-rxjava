@@ -1,15 +1,16 @@
 package meez.rxvertx.java.http;
 
-import meez.rxvertx.java.subject.ReplySubject;
-import meez.rxvertx.java.subject.StreamSubject;
-import org.vertx.java.core.Handler;
+import meez.rxvertx.java.impl.MemoizeHandler;
+import meez.rxvertx.java.impl.ResultMemoizeHandler;
 import org.vertx.java.core.http.*;
 import rx.Observable;
 import rx.util.functions.Action1;
 
 import java.util.Map;
 
-/** RxWrapper for HttpClient */
+/** RxWrapper for HttpClient 
+ * @author <a href="http://github.com/petermd">Peter McDonnell</a>
+ */
 public class RxHttpClient {
   
   /** Nested */
@@ -34,41 +35,47 @@ public class RxHttpClient {
   
   /** General exception handler */
   public Observable<Exception> exceptionHandler() {
-    StreamSubject<Exception> rx=StreamSubject.create();
-    nested.exceptionHandler(rx);
-    return rx;
+    ResultMemoizeHandler<Exception> rh=new ResultMemoizeHandler<Exception>();
+    nested.exceptionHandler(rh);
+    return Observable.create(rh.subscribe);
   }
 
   /** Connect to WebSocket */
   public Observable<WebSocket> connectWebsocket(String s) {
-    ReplySubject<WebSocket> rx=ReplySubject.create();
-    nested.connectWebsocket(s,rx);
-    return rx;
+    ResultMemoizeHandler<WebSocket> rh=new ResultMemoizeHandler<WebSocket>();
+    nested.connectWebsocket(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   /** Connect to WebSocket w/Version */
   public Observable<WebSocket> connectWebsocket(String s, WebSocketVersion webSocketVersion) {
-    ReplySubject<WebSocket> rx=ReplySubject.create();
-    nested.connectWebsocket(s,webSocketVersion,rx);
-    return rx;
+    ResultMemoizeHandler<WebSocket> rh=new ResultMemoizeHandler<WebSocket>();
+    nested.connectWebsocket(s,webSocketVersion,rh);
+    return Observable.create(rh.subscribe);
   }
 
   /** Fetch URL using simple GET */
   public Observable<RxHttpClientResponse> getNow(String s) {
-    final ReplySubject<RxHttpClientResponse> rx=ReplySubject.create();
-    nested.getNow(s,new Handler<HttpClientResponse>() {
-      public void handle(HttpClientResponse resp) {
-        rx.handle(new RxHttpClientResponse(resp));
+    final MemoizeHandler<RxHttpClientResponse,HttpClientResponse> rh=new MemoizeHandler<RxHttpClientResponse,HttpClientResponse>() {
+      @Override
+      public void handle(HttpClientResponse r) {
+        complete(new RxHttpClientResponse(r));
       }
-    });
-    return rx;
+    };
+    nested.getNow(s,rh);
+    return Observable.create(rh.subscribe);
   }
 
   /** Fetch URL using simple GET w/Params */
   public Observable<RxHttpClientResponse> getNow(String s, Map<String, ? extends Object> params) {
-    final ReplySubject<RxHttpClientResponse> rx=ReplySubject.create();
-    nested.getNow(s,params,mapRx(rx));
-    return rx;
+    final MemoizeHandler<RxHttpClientResponse,HttpClientResponse> rh=new MemoizeHandler<RxHttpClientResponse,HttpClientResponse>() {
+      @Override
+      public void handle(HttpClientResponse r) {
+        complete(new RxHttpClientResponse(r));
+      }
+    };
+    nested.getNow(s,params,rh);
+    return Observable.create(rh.subscribe);
   }
 
   /** Construct OPTIONS request.
@@ -178,21 +185,20 @@ public class RxHttpClient {
    * 
    */
   public Observable<RxHttpClientResponse> request(String method, String uri, Action1<HttpClientRequest> builder) {
-    ReplySubject<RxHttpClientResponse> rx=ReplySubject.create();
-    HttpClientRequest req=nested.request(method,uri,mapRx(rx));
+    
+    final MemoizeHandler<RxHttpClientResponse,HttpClientResponse> rh=new MemoizeHandler<RxHttpClientResponse,HttpClientResponse>() {
+      @Override
+      public void handle(HttpClientResponse r) {
+        complete(new RxHttpClientResponse(r));
+      }
+    };
+    
+    HttpClientRequest req=nested.request(method,uri,rh);
+    
     // Use the builder to create the full request (or start upload)
     // We assume builder will call request.end()
     builder.call(req);
-    return rx; 
-  }
-
-  // Implementation
-  
-  private Handler<HttpClientResponse> mapRx(final ReplySubject<RxHttpClientResponse> rx) {
-    return new Handler<HttpClientResponse>() {
-      public void handle(HttpClientResponse resp) {
-        rx.handle(new RxHttpClientResponse(resp));
-      }
-    };
+    
+    return Observable.create(rh.subscribe);
   }
 }

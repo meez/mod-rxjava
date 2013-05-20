@@ -1,4 +1,4 @@
-package meez.rxvertx.java.subject;
+package meez.rxvertx.java.impl;
 
 import meez.rxvertx.java.RxTestSupport;
 import org.junit.Test;
@@ -14,8 +14,10 @@ import rx.util.functions.Func2;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/** Unit-test for ReplySubject */
-public class TestReplySubject extends TestBase {
+/**
+ * TestResultHandler
+ */
+public class TestResultHandler extends TestBase {
   
   private TestUtils tu = new TestUtils(vertx);
 
@@ -29,7 +31,8 @@ public class TestReplySubject extends TestBase {
   /** Test multiple replies */
   @Test 
   public void testMultiReply() {
-    ReplySubject<String> rx=ReplySubject.create();
+    ResultMemoizeHandler<String> rh=new ResultMemoizeHandler<String>();
+    Observable<String> rx=Observable.create(rh.subscribe);
     final AtomicInteger replyReceived=new AtomicInteger();
     rx.subscribe(
       new Action1<String>() {
@@ -48,18 +51,19 @@ public class TestReplySubject extends TestBase {
         }
       });
     // First 
-    rx.handle("first-reply");
+    rh.handle("first-reply");
     // Additional replies (ignore)
-    rx.handle("ignore-me1");
+    rh.handle("ignore-me1");
   }
 
   /** Test synchronous reply (before subscribed) */
   @Test 
   public void testSyncReply() {
-    ReplySubject<String> rx=ReplySubject.create();
+    ResultMemoizeHandler<String> rh=new ResultMemoizeHandler<String>();
+    Observable<String> rx=Observable.create(rh.subscribe);
     final AtomicInteger replyReceived=new AtomicInteger();
     // Reply as part of call
-    autoReply(rx);
+    autoReply(rh);
     // Subscribe after reply
     rx.subscribe(
       new Action1<String>() {
@@ -78,13 +82,13 @@ public class TestReplySubject extends TestBase {
         }
       });
     // Additional replies (ignore)
-    rx.handle("ignore-me1");
+    rh.handle("ignore-me1");
   }
   
-  /** Test multiple subscribers (before after reply) */
-  @Test 
-  public void testMultiSubscriber() throws InterruptedException {
-    ReplySubject<String> rx=ReplySubject.create();
+  /** Multiple subscribers not supported -> Test multiple subscribers (before after reply) */
+  public void notestMultiSubscriber() throws InterruptedException {
+    ResultMemoizeHandler<String> rh=new ResultMemoizeHandler<String>();
+    Observable<String> rx=Observable.create(rh.subscribe);
     final CountDownLatch latch=new CountDownLatch(2); 
 
     // Subscribe before handle()
@@ -95,7 +99,7 @@ public class TestReplySubject extends TestBase {
     System.out.println("Sending reply");
     
     // Send reply 
-    rx.handle("reply");
+    rh.handle("reply");
 
     // Subscribe after handle()
     rx.subscribe(
@@ -110,11 +114,13 @@ public class TestReplySubject extends TestBase {
   /** Test cascading handlers */
   @Test 
   public void testCascading() throws InterruptedException {
-    ReplySubject<Long> a1=ReplySubject.create();
-    ReplySubject<Long> b1=ReplySubject.create();
+    ResultMemoizeHandler<Long> a1h=new ResultMemoizeHandler<Long>();
+    ResultMemoizeHandler<Long> b1h=new ResultMemoizeHandler<Long>();
+    Observable<Long> a1=Observable.create(a1h.subscribe);
+    Observable<Long> b1=Observable.create(b1h.subscribe);
     
-    vertx.setTimer(100,a1);
-    vertx.setTimer(100,b1);
+    vertx.setTimer(100,a1h);
+    vertx.setTimer(100,b1h);
     
     // Create two pipelines, replysubject creates new replysubject
     
@@ -123,8 +129,9 @@ public class TestReplySubject extends TestBase {
         .mapMany(new Func1<Long, Observable<Long>>() {
           public Observable<Long> call(Long aLong) {
             System.out.println("a1 -> start a2");          
-            ReplySubject<Long> a2=ReplySubject.create();
-            vertx.setTimer(100,a2);
+            ResultMemoizeHandler<Long> a2h=new ResultMemoizeHandler<Long>();
+            Observable<Long> a2=Observable.create(a2h.subscribe);
+            vertx.setTimer(100,a2h);
             return a2; 
           }
         });
@@ -134,15 +141,16 @@ public class TestReplySubject extends TestBase {
         .mapMany(new Func1<Long, Observable<Long>>() {
           public Observable<Long> call(Long aLong) {
             System.out.println("b1 -> start b2");          
-            ReplySubject<Long> b2=ReplySubject.create();
-            vertx.setTimer(100,b2);
+            ResultMemoizeHandler<Long> b2h=new ResultMemoizeHandler<Long>();
+            Observable<Long> b2=Observable.create(b2h.subscribe);
+            vertx.setTimer(100,b2h);
             return b2; 
           }
         });
     
     // Subscribe to both
-    txa.subscribe(RxTestSupport.traceValue("txa"));
-    txb.subscribe(RxTestSupport.traceValue("txb"));
+    //txa.subscribe(RxTestSupport.traceValue("txa"));
+    //txb.subscribe(RxTestSupport.traceValue("txb"));
     
     final CountDownLatch latch=new CountDownLatch(1); 
     

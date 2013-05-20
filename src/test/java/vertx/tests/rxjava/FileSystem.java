@@ -1,23 +1,26 @@
 package vertx.tests.rxjava;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
-import java.util.Set;
-
 import meez.rxvertx.java.RxSupport;
 import meez.rxvertx.java.RxVertx;
 import meez.rxvertx.java.io.RxFileSupport;
-import meez.rxvertx.java.subject.StreamSubject;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.file.AsyncFile;
 import org.vertx.java.core.impl.Windows;
 import org.vertx.java.testframework.TestClientBase;
 import org.vertx.java.testframework.TestUtils;
+import rx.subjects.PublishSubject;
 import rx.util.functions.Action0;
 import rx.util.functions.Action1;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
 
 /** FileSystem */
 public class FileSystem extends TestClientBase {
@@ -70,7 +73,7 @@ public class FileSystem extends TestClientBase {
       .subscribe(new Action1<AsyncFile>() {
         public void call(final AsyncFile file) {
 
-          StreamSubject<Buffer> out=StreamSubject.create();
+          PublishSubject<Buffer> out=PublishSubject.create();
 
           RxSupport
             .stream(out,file.getWriteStream())

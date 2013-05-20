@@ -3,6 +3,7 @@ package meez.rxvertx.java;
 import org.vertx.java.testframework.TestUtils;
 import rx.util.functions.Action0;
 import rx.util.functions.Action1;
+import rx.util.functions.Func1;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -11,12 +12,23 @@ import java.util.concurrent.CountDownLatch;
 
 /** RxTestSupport */
 public class RxTestSupport {
+
+  // Map tracing
+  
+  public static <T> Func1<T,T> traceMap(final String tag) {
+    return new Func1<T,T>() {
+      public T call(T v) {
+        System.out.println("MAP "+tag+" "+v);
+        return v;
+      }
+    };
+  }
   
   // Subscribe tracing
   
-  public static Action1 traceValue(final String tag) {
-    return new Action1() {
-      public void call(Object v) {
+  public static <T> Action1<T> traceValue(final String tag) {
+    return new Action1<T>() {
+      public void call(T v) {
         System.out.println("NEXT "+tag+" "+v+" ["+(v!=null?v.getClass():"-null-")+"]");
       }
     };
@@ -97,7 +109,8 @@ public class RxTestSupport {
 
   public static Action1<Exception> expectedFailure(final TestUtils tu, final Class expType) {
     return new Action1<Exception>() {
-      public void call(Exception e) {
+      @SuppressWarnings(value="unchecked")
+      public void call(Exception e  ) {
         tu.azzert(expType.isAssignableFrom(e.getClass()));
         System.out.println("Expected error: "+e);
         tu.testComplete();

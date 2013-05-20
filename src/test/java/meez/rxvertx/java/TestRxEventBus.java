@@ -26,19 +26,14 @@ public class TestRxEventBus extends TestBase {
   }
 
   @Test
-  public void testRegisterHandlerRx() throws Exception {
+  public void testToObservableLocal() throws Exception {
     startTest(getMethodName());
   }
 
   // Integration / Examples
   
   @Test
-  public void testRxObjectMapping() throws Exception {
-    startTest(getMethodName());
-  }
-
-  @Test
-  public void testRxEventBusPipeline() throws Exception {
+  public void testEventBusPipeline() throws Exception {
     startTest(getMethodName());
   }
 }

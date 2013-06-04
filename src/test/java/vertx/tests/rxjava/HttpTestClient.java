@@ -1,6 +1,7 @@
 package vertx.tests.rxjava;
 
 import meez.rxvertx.java.RxTestSupport;
+import meez.rxvertx.java.RxTimer;
 import meez.rxvertx.java.http.RxHttpClient;
 import meez.rxvertx.java.http.RxHttpServer;
 import meez.rxvertx.java.http.RxHttpServerRequest;
@@ -19,6 +20,7 @@ public class HttpTestClient extends TestClientBase {
   
   private RxHttpClient client;
   private RxHttpServer server;
+  private RxTimer timer;
 
   @Override
   public void start() {
@@ -26,6 +28,7 @@ public class HttpTestClient extends TestClientBase {
     tu.appReady();
     client=new RxHttpClient(vertx.createHttpClient());
     client.coreHttpClient().setHost("localhost").setPort(8080);
+    timer=new RxTimer(vertx);
   }
 
   @Override
@@ -53,7 +56,9 @@ public class HttpTestClient extends TestClientBase {
   /** Simple ping server */
   private class PingServer extends HttpServerPipeline<JsonObject> {
     public Observable<JsonObject> process(final RxHttpServerRequest req) {
-      return json(new JsonObject()
+      System.out.println("PingServer.req("+req.path+")");
+      // Return JsonObject after 500ms
+      return timer.after(500,new JsonObject()
         .putString("msg", "pong")
         .putString("path", req.path)
       );
@@ -147,6 +152,8 @@ public class HttpTestClient extends TestClientBase {
     // Access via proxy
     client.coreHttpClient().setPort(8081);
     
+    final long ts=System.currentTimeMillis();
+    
     client
       // GET JsonObject
       .getNow("/ping")
@@ -156,11 +163,15 @@ public class HttpTestClient extends TestClientBase {
       .subscribe(
         new Action1<JsonObject>() {
           public void call(JsonObject json) {
-            System.out.println("zip: "+json);
+            long tt=System.currentTimeMillis()-ts;
+            System.out.println("zip["+tt+"ms]: "+json);
             tu.azzert("pong".equals(json.getObject("resp1").getString("msg")));
             tu.azzert("/ping/a".equals(json.getObject("resp1").getString("path")));
             tu.azzert("pong".equals(json.getObject("resp2").getString("msg")));
             tu.azzert("/ping/b".equals(json.getObject("resp2").getString("path")));
+            
+            // Each request takes 500ms, ensure they were done in parallel
+            tu.azzert(tt<750);
           }
         },
         RxTestSupport.testFailed(tu),

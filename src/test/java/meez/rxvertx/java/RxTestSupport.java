@@ -5,9 +5,7 @@ import rx.util.functions.Action0;
 import rx.util.functions.Action1;
 import rx.util.functions.Func1;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 /** RxTestSupport */
@@ -49,6 +47,17 @@ public class RxTestSupport {
         System.out.println("COMPLETE "+tag);
       }
     };
+  }
+  
+  // List
+  
+  /** Convert elements into a mutable List */
+  public static List toList(Object... a) {
+    List<Object> res=new ArrayList<Object>(a.length);
+    for (int i=0;i<a.length;i++) {
+      res.add(a[i]);
+    }
+    return res;
   }
   
   // Azzert

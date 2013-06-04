@@ -6,9 +6,7 @@ import vertx.tests.rxjava.HttpTestClient;
 import vertx.tests.rxjava.JsonServer;
 import vertx.tests.rxjava.ProxyServer;
 
-/**
- * TestRxHttp
- */
+/** TestRxHttp */
 public class TestRxHttp extends TestBase {
   
   @Override

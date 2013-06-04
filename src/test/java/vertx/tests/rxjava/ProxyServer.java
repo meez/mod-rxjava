@@ -17,11 +17,13 @@ public class ProxyServer extends Verticle {
 
   protected TestUtils tu;
   private HttpServer server;
-  private RxHttpClient client; 
 
   public void start() {
     tu = new TestUtils(vertx);
-    client=new RxHttpClient(vertx.createHttpClient().setHost("localhost").setPort(8080));
+
+    // Set pool size to allow concurrent connections
+    final RxHttpClient client=new RxHttpClient(vertx.createHttpClient().setHost("localhost").setPort(8080).setMaxPoolSize(16));
+
     server=vertx.createHttpServer().requestHandler(
       new HttpServerPipeline<JsonObject>() {
         @Override 

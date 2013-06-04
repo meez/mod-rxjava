@@ -2,6 +2,7 @@ package vertx.tests.rxjava;
 
 import meez.rxvertx.java.RxEventBus;
 import meez.rxvertx.java.RxTestSupport;
+import static meez.rxvertx.java.RxTestSupport.*;
 import meez.rxvertx.java.RxVertx;
 import meez.rxvertx.java.pipeline.EventBusPipeline;
 import org.vertx.java.core.buffer.Buffer;
@@ -22,15 +23,6 @@ import java.util.List;
 public class EventBus extends TestClientBase {
 
   // Helpers
-  
-  /** Convert elements into a mutable List */
-  protected List toList(Object... a) {
-    List<Object> res=new ArrayList<Object>(a.length);
-    for (int i=0;i<a.length;i++) {
-      res.add(a[i]);
-    }
-    return res;
-  }
   
   /** Assert that the observable returns a single object */
   protected void assertOne(Observable<? extends Object> in, Object exp, Action0 onRead) {

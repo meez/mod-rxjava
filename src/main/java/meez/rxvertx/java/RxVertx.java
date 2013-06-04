@@ -38,31 +38,9 @@ public class RxVertx {
     return nested.sharedData();
   }
   
-  // Timers
-  // Need a proper rx timer 
-  // Observable<Long> setTimer(long delay)
-  // Observable<Long> setPeriodic(long period)
-  // void cancelTimer(Observable<Long> subject)
-  
-  /** Set a single timer */
-  public long setTimer(long l, Handler<Long> handler) {
-    return nested.setTimer(l,handler);
-  }
-  
-  /** Set a periodic timer */
-  public long setPeriodic(long l, Handler<Long> handler) {
-    return nested.setPeriodic(l,handler);
-  }
-  
-  /** Cancel a timer 
-   *
-   * If the timer was created using setTimer or setPeriodic then the Subject may never complete because
-   * there is no handler for timer cancellation currently. We could build a local map to implement or else would
-   * need a core extension to setTimer(l,handler,cancelHandler) / setPeriodic(l,handler,cancelHandler) 
-   * 
-   **/
-  public boolean cancelTimer(long l) {
-    return nested.cancelTimer(l);
+  /** Return timer wrapper */
+  public RxTimer timer() {
+    return new RxTimer(nested);
   }
 
   public void runOnLoop(Handler<Void> handler) {

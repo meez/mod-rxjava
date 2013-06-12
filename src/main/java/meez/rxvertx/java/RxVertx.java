@@ -12,6 +12,7 @@ public class RxVertx {
   
   private final RxEventBus eventBus;
   private final RxFileSystem fileSystem;
+  private final RxTimer timer;
   
   /** Create new RxVertx wrapping a VertX instance */
   public RxVertx(Vertx vertx) {
@@ -19,6 +20,7 @@ public class RxVertx {
     
     this.eventBus=new RxEventBus(vertx.eventBus());
     this.fileSystem=new RxFileSystem(vertx.fileSystem());
+    this.timer=new RxTimer(vertx);
   }
   
   // Vertx implementation
@@ -40,7 +42,7 @@ public class RxVertx {
   
   /** Return timer wrapper */
   public RxTimer timer() {
-    return new RxTimer(nested);
+    return timer;
   }
 
   public void runOnLoop(Handler<Void> handler) {

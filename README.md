@@ -26,12 +26,12 @@ Currently Observable wrappers are provided for
 - HttpClient
 - NetServer
 - NetClient
+- Timer 
 
 There are also base Observable adapters that map Handler<T> and AsyncResultHandler<T> to Observable<T> that can be used to call other Handler based APIs.
 
 In future, additional wrappers will be provided for
 
-- Timer 
 - SockJSServer
 
 ## Usage

@@ -1,0 +1,7 @@
+{
+  "description":"RxJava library support for VertX",
+  "licenses": ["The Apache Software License Version 2.0"],
+  "author": "petermd",
+  "keywords": ["rx", "rxjava", "reactive", "extensions"],
+  "homepage": "https://github.com/meez/mod-rxjava"
+}

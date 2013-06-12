@@ -44,13 +44,13 @@ install - install any jars produced to the local Maven repository (.m2)
 
 dependencies {
 
-  compile "com.netflix.rxjava:rxjava-core:0.8.2"
+  compile "com.netflix.rxjava:rxjava-core:$rxjavaVersion"
+  compile "com.netflix.rxjava:rxjava-groovy:$rxjavaVersion"
   testCompile files("src/test/conf")
 
   // If you're creating Groovy compiled verticles you may need the following dependencies
   provided "org.codehaus.groovy:groovy-all:$groovyVersion"
   provided "io.vertx:lang-groovy:$groovyLangModVersion@jar"
-
 }
 
 test {
@@ -70,7 +70,7 @@ def configurePom(def pom) {
 
     developers {
       developer {
-        id 'https://githib.com/petermd'
+        id 'https://github.com/petermd'
         name 'Peter McDonnell'
         email 'petermd at gmail.com'
       }

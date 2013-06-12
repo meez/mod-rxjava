@@ -1,6 +1,10 @@
 package meez.rxvertx.java;
 
+import meez.rxvertx.java.http.RxHttpClient;
+import meez.rxvertx.java.http.RxHttpServer;
 import meez.rxvertx.java.io.RxFileSystem;
+import meez.rxvertx.java.net.RxNetClient;
+import meez.rxvertx.java.net.RxNetServer;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.shareddata.SharedData;
@@ -35,6 +39,26 @@ public class RxVertx {
     return eventBus;
   }
   
+  /** Http Server */
+  public RxHttpServer createHttpServer() {
+    return new RxHttpServer(nested.createHttpServer());
+  }
+  
+  /** Http Client */
+  public RxHttpClient createHttpClient() {
+    return new RxHttpClient(nested.createHttpClient());
+  }
+  
+  /** Net Server */
+  public RxNetServer createNetServer() {
+    return new RxNetServer(nested.createNetServer());
+  }
+
+  /** Net Client */
+  public RxNetClient createNetClient() {
+    return new RxNetClient(nested.createNetClient());
+  }
+
   /** Return SharedData */
   public SharedData sharedData() {
     return nested.sharedData();

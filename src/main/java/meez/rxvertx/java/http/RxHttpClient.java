@@ -199,8 +199,12 @@ public class RxHttpClient {
     
     // Use the builder to create the full request (or start upload)
     // We assume builder will call request.end()
-    builder.call(req);
-    
+    try {
+        builder.call(req);
+    } catch(Exception e) {
+        rh.fail(e);
+    }
+
     return Observable.create(rh.subscribe);
   }
 }

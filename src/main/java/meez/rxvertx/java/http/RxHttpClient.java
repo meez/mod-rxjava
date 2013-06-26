@@ -2,6 +2,7 @@ package meez.rxvertx.java.http;
 
 import meez.rxvertx.java.impl.MemoizeHandler;
 import meez.rxvertx.java.impl.ResultMemoizeHandler;
+import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.*;
 import rx.Observable;
 import rx.util.functions.Action1;
@@ -187,6 +188,14 @@ public class RxHttpClient {
     };
     
     HttpClientRequest req= core.request(method,uri,rh);
+
+    // if req fails, notify observers
+    req.exceptionHandler(new Handler<Exception>() {
+        @Override
+        public void handle(Exception event) {
+            rh.fail(event);
+        }
+    });
     
     // Use the builder to create the full request (or start upload)
     // We assume builder will call request.end()

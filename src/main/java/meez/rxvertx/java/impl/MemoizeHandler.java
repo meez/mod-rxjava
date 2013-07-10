@@ -1,13 +1,13 @@
 package meez.rxvertx.java.impl;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.vertx.java.core.Handler;
 import rx.Observer;
 import rx.Subscription;
 import rx.subscriptions.Subscriptions;
 import rx.util.functions.Action0;
 import rx.util.functions.Func1;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 /** Subject that stores the result of a Handler and notfies all current and future Observers */
 public class MemoizeHandler<R,T> implements Handler<T> {
@@ -42,13 +42,12 @@ public class MemoizeHandler<R,T> implements Handler<T> {
 
         // Completed. Forward the saved result
         case COMPLETED:
-          newObserver.onNext(result);
-          newObserver.onCompleted();
+          dispatchResult(newObserver,result);
           return Subscriptions.empty();
         
         // Failed already. Forward the saved error
         case FAILED:
-          newObserver.onError(error);
+          dispatchError(newObserver,error);
           return Subscriptions.empty();
       }
       
@@ -66,8 +65,6 @@ public class MemoizeHandler<R,T> implements Handler<T> {
       Observer<R> ob=obRef.getAndSet(null);
       if (ob==null)
         throw new IllegalStateException("Unsubscribe without subscribe");
-      // Unsubscribe triggers completed
-      ob.onCompleted();
     }
   };
 
@@ -81,21 +78,7 @@ public class MemoizeHandler<R,T> implements Handler<T> {
     if (ob==null)
       return;
 
-    try {
-      ob.onNext(value);
-    }
-    catch (Exception e) {
-      e.printStackTrace(); // FIXME: logging
-      ob.onError(e);
-    }
-
-    try {
-      ob.onCompleted();
-    }
-    catch (Exception e) {
-      e.printStackTrace(); // FIXME: logging
-      ob.onError(e);
-    }
+    dispatchResult(ob,value);
   }
   
   /** Dispatch failure */
@@ -108,13 +91,7 @@ public class MemoizeHandler<R,T> implements Handler<T> {
     if (ob==null)
       return;
 
-    try {
-      ob.onError(e);
-    }
-    catch (Exception ee) {
-      // Ignore error in exception handler
-      ee.printStackTrace(); // FIXME: logging
-    }
+    dispatchError(ob,e);
   }
   
   // Handler implementation
@@ -124,5 +101,40 @@ public class MemoizeHandler<R,T> implements Handler<T> {
   public void handle(T value) {
     // Default: Assume same type
     complete((R)value);
+  }
+  
+  // Implementation
+  
+  /** Dispatch result */
+  private void dispatchResult(Observer<R> ob, R value) {
+    try {
+      ob.onNext(value);
+    }
+    catch(Throwable t) {
+      dispatchError(ob,new RuntimeException("Observer call failed (e="+t+")",t));
+    }
+
+    // We do not retry onError() once onCompleted() has been attempted. For now we just log the error and continue.
+    // Unsure as to what the best approach is here
+    try {
+      ob.onCompleted();
+    }
+    catch(Throwable t) {
+      // FIXME: Logging
+      System.err.println("dispatchResult("+value+") onCompleted() has failed (e="+t+")");
+      t.printStackTrace(System.err);
+    }
+  }
+  
+  /** Dispatch error */
+  private void dispatchError(Observer ob, Exception ex) {
+    try {
+      ob.onError(ex);
+    }
+    catch(Throwable t) {
+      // FIXME: Logging
+      System.err.println("dispatchErrror("+ex+") failed. (e="+t+")");
+      t.printStackTrace(System.err);
+    }
   }
 }

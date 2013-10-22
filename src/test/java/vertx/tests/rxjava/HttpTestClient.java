@@ -1,19 +1,18 @@
 package vertx.tests.rxjava;
 
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
+
 import meez.rxvertx.java.RxTestSupport;
 import meez.rxvertx.java.RxTimer;
-import meez.rxvertx.java.http.RxHttpClient;
-import meez.rxvertx.java.http.RxHttpServer;
-import meez.rxvertx.java.http.RxHttpServerRequest;
-import meez.rxvertx.java.http.RxHttpSupport;
+import meez.rxvertx.java.http.*;
 import meez.rxvertx.java.pipeline.HttpServerPipeline;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.testframework.TestClientBase;
 import rx.Observable;
 import rx.util.functions.Action1;
 import rx.util.functions.Func2;
-
-import java.io.UnsupportedEncodingException;
 
 /** HttpTestClient */
 public class HttpTestClient extends TestClientBase {
@@ -61,6 +60,7 @@ public class HttpTestClient extends TestClientBase {
       return timer.after(500,new JsonObject()
         .putString("msg", "pong")
         .putString("path", req.path)
+        .putString("agent", req.headers().get("User-Agent"))
       );
     }
   }
@@ -85,6 +85,46 @@ public class HttpTestClient extends TestClientBase {
           }
         },
         RxTestSupport.testFailed(tu));
+  }
+
+  public void testGetNowHeaders() throws UnsupportedEncodingException {
+
+    startPipelineServer(new PingServer(),8080);      
+    
+    Map<String,Object> headers=new HashMap<String,Object>();
+    headers.put("User-Agent","Test Agent");
+    
+    client
+      // GET JsonObject
+      .getNow("/ping",headers)
+      // Download body
+      .flatMap(RxHttpSupport.downloadJson())
+      // Validate
+      .subscribe(
+        new Action1<JsonObject>() {
+          public void call(JsonObject json) {
+            tu.azzert("pong".equals(json.getString("msg")));
+            tu.azzert("Test Agent".equals(json.getString("agent")));
+            tu.testComplete();
+          }
+        },
+        RxTestSupport.testFailed(tu));
+  }
+
+  public void testGetNowError() throws UnsupportedEncodingException {
+
+    startPipelineServer(new PingServer(),8080);      
+    
+    // Wrong Port
+    client.coreHttpClient().setPort(8081);
+
+    client
+      // GET JsonObject
+      .getNow("/ping")
+      // Download body
+      .flatMap(RxHttpSupport.downloadJson())
+      // Validate
+      .subscribe(RxTestSupport.assertError(tu,Exception.class));
   }
 
   public void testPostJson() throws UnsupportedEncodingException {

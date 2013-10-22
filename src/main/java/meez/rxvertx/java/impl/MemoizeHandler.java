@@ -112,6 +112,7 @@ public class MemoizeHandler<R,T> implements Handler<T> {
     }
     catch(Throwable t) {
       dispatchError(ob,new RuntimeException("Observer call failed (e="+t+")",t));
+      return;
     }
 
     // We do not retry onError() once onCompleted() has been attempted. For now we just log the error and continue.

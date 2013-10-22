@@ -23,6 +23,16 @@ public class TestRxHttp extends TestBase {
   }
 
   @Test
+  public void testGetNowHeaders() throws Exception {
+    startTest(getMethodName());
+  }
+
+  @Test
+  public void testGetNowError() throws Exception {
+    startTest(getMethodName());
+  }
+
+  @Test
   public void testPostJson() throws Exception {
     startApp(JsonServer.class.getName());
     startTest(getMethodName());

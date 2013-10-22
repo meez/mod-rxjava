@@ -1,13 +1,13 @@
 package meez.rxvertx.java.http;
 
+import java.util.Map;
+
 import meez.rxvertx.java.impl.MemoizeHandler;
 import meez.rxvertx.java.impl.ResultMemoizeHandler;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.*;
 import rx.Observable;
 import rx.util.functions.Action1;
-
-import java.util.Map;
 
 /** RxWrapper for HttpClient 
  * @author <a href="http://github.com/petermd">Peter McDonnell</a>
@@ -56,20 +56,31 @@ public class RxHttpClient {
         complete(new RxHttpClientResponse(r));
       }
     };
-    core.getNow(s,rh);
-    return Observable.create(rh.subscribe);
+    // Use request() instead of getNow() so we can trap errors
+    return request("GET",s,new Action1<HttpClientRequest>() {
+      public void call(HttpClientRequest req) {
+        req.end();
+      }
+    });
   }
 
   /** Fetch URL using simple GET w/Params */
-  public Observable<RxHttpClientResponse> getNow(String s, Map<String, ? extends Object> headers) {
+  public Observable<RxHttpClientResponse> getNow(String s, final Map<String, ? extends Object> headers) {
     final MemoizeHandler<RxHttpClientResponse,HttpClientResponse> rh=new MemoizeHandler<RxHttpClientResponse,HttpClientResponse>() {
       @Override
       public void handle(HttpClientResponse r) {
         complete(new RxHttpClientResponse(r));
       }
     };
-    core.getNow(s,headers,rh);
-    return Observable.create(rh.subscribe);
+    // Use request() instead of getNow() so we can trap errors
+    return request("GET",s,new Action1<HttpClientRequest>() {
+      public void call(HttpClientRequest req) {
+        for (Map.Entry<String,? extends Object> me : headers.entrySet()) {
+          req.putHeader(me.getKey(),me.getValue());
+        }
+        req.end();
+      }
+    });
   }
 
   /** Construct OPTIONS request.

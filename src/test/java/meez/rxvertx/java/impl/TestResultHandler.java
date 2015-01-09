@@ -1,18 +1,18 @@
 package meez.rxvertx.java.impl;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import meez.rxvertx.java.RxTestSupport;
 import org.junit.Test;
 import org.vertx.java.core.Handler;
 import org.vertx.java.testframework.TestBase;
 import org.vertx.java.testframework.TestUtils;
 import rx.Observable;
-import rx.util.functions.Action0;
-import rx.util.functions.Action1;
-import rx.util.functions.Func1;
-import rx.util.functions.Func2;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
+import rx.functions.Action0;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.functions.Func2;
 
 /**
  * TestResultHandler
@@ -126,27 +126,27 @@ public class TestResultHandler extends TestBase {
     
     Observable<Long> txa=
       a1
-        .mapMany(new Func1<Long, Observable<Long>>() {
-          public Observable<Long> call(Long aLong) {
-            System.out.println("a1 -> start a2");          
-            ResultMemoizeHandler<Long> a2h=new ResultMemoizeHandler<Long>();
-            Observable<Long> a2=Observable.create(a2h.subscribe);
-            vertx.setTimer(100,a2h);
-            return a2; 
-          }
-        });
+        .flatMap(new Func1<Long, Observable<Long>>() {
+			public Observable<Long> call(Long aLong) {
+				System.out.println("a1 -> start a2");
+				ResultMemoizeHandler<Long> a2h = new ResultMemoizeHandler<Long>();
+				Observable<Long> a2 = Observable.create(a2h.subscribe);
+				vertx.setTimer(100, a2h);
+				return a2;
+			}
+		});
     
     Observable<Long> txb=
       b1
-        .mapMany(new Func1<Long, Observable<Long>>() {
-          public Observable<Long> call(Long aLong) {
-            System.out.println("b1 -> start b2");          
-            ResultMemoizeHandler<Long> b2h=new ResultMemoizeHandler<Long>();
-            Observable<Long> b2=Observable.create(b2h.subscribe);
-            vertx.setTimer(100,b2h);
-            return b2; 
-          }
-        });
+        .flatMap(new Func1<Long, Observable<Long>>() {
+			public Observable<Long> call(Long aLong) {
+				System.out.println("b1 -> start b2");
+				ResultMemoizeHandler<Long> b2h = new ResultMemoizeHandler<Long>();
+				Observable<Long> b2 = Observable.create(b2h.subscribe);
+				vertx.setTimer(100, b2h);
+				return b2;
+			}
+		});
     
     // Subscribe to both
     //txa.subscribe(RxTestSupport.traceValue("txa"));

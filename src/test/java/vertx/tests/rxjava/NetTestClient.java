@@ -1,5 +1,7 @@
 package vertx.tests.rxjava;
 
+import java.io.UnsupportedEncodingException;
+
 import meez.rxvertx.java.RxSupport;
 import meez.rxvertx.java.RxTestSupport;
 import meez.rxvertx.java.net.RxNetClient;
@@ -7,9 +9,7 @@ import meez.rxvertx.java.net.RxNetServer;
 import meez.rxvertx.java.net.RxNetSocket;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.testframework.TestClientBase;
-import rx.util.functions.Action1;
-
-import java.io.UnsupportedEncodingException;
+import rx.functions.Action1;
 
 /**
  * NetTestClient

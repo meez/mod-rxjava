@@ -5,7 +5,7 @@ import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.logging.Logger;
 import org.vertx.java.core.logging.impl.LoggerFactory;
 import rx.Observable;
-import rx.util.functions.Action1;
+import rx.functions.Action1;
 
 /** Pipeline for handling BusMod requests */
 public class EventBusPipeline<T> extends HandlerPipeline<Message<T>,Message<T>,T> {
@@ -46,9 +46,9 @@ public class EventBusPipeline<T> extends HandlerPipeline<Message<T>,Message<T>,T
   }
   
   /** Return error renderer */
-  public Action1<Exception> renderError(final Message<T> src) {
-    return new Action1<Exception>() {
-      public void call(Exception e) {
+  public Action1<Throwable> renderError(final Message<T> src) {
+    return new Action1<Throwable>() {
+      public void call(Throwable e) {
         // There is no standard way to send errors to non-JsonObject messages. Log and ignore for now
         log.warn("EventBus handler failed (req="+src+")",e);
       }

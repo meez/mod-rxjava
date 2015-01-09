@@ -44,8 +44,8 @@ install - install any jars produced to the local Maven repository (.m2)
 
 dependencies {
 
-  compile "com.netflix.rxjava:rxjava-core:$rxjavaVersion"
-  compile "com.netflix.rxjava:rxjava-groovy:$rxjavaVersion"
+  compile "io.reactivex:rxjava:$rxjavaVersion"
+  compile "com.netflix.rxjava:rxjava-groovy:$rxjavaGroovyVersion"
   testCompile files("src/test/conf")
 
   // If you're creating Groovy compiled verticles you may need the following dependencies

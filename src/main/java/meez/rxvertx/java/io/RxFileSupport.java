@@ -5,7 +5,7 @@ import meez.rxvertx.java.impl.AsyncResultMemoizeHandler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.file.AsyncFile;
 import rx.Observable;
-import rx.util.functions.Func1;
+import rx.functions.Func1;
 
 /** RxFileSupport utility methods */
 public class RxFileSupport {

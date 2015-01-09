@@ -6,8 +6,8 @@ import meez.rxvertx.java.http.RxHttpSupport;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.json.JsonObject;
 import rx.Observable;
-import rx.util.functions.Action0;
-import rx.util.functions.Action1;
+import rx.functions.Action0;
+import rx.functions.Action1;
 
 /** Pipeline for handling HttpServer requests */
 public class HttpServerPipeline<T> extends HandlerPipeline<RxHttpServerRequest, HttpServerRequest, T> {
@@ -55,9 +55,9 @@ public class HttpServerPipeline<T> extends HandlerPipeline<RxHttpServerRequest, 
   }
   
   /** Return error renderer */
-  public Action1<Exception> renderError(final HttpServerRequest src) {
-    return new Action1<Exception>() {
-      public void call(Exception e) {
+  public Action1<Throwable> renderError(final HttpServerRequest src) {
+    return new Action1<Throwable>() {
+      public void call(Throwable e) {
         src.response.statusCode=500;
         src.response.statusMessage="Request failed: "+e;
         src.response.putHeader("Content-type","text/plain");

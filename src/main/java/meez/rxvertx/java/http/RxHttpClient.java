@@ -7,7 +7,7 @@ import meez.rxvertx.java.impl.ResultMemoizeHandler;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.*;
 import rx.Observable;
-import rx.util.functions.Action1;
+import rx.functions.Action1;
 
 /** RxWrapper for HttpClient 
  * @author <a href="http://github.com/petermd">Peter McDonnell</a>

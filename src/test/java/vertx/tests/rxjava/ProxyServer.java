@@ -10,7 +10,7 @@ import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.deploy.Verticle;
 import org.vertx.java.testframework.TestUtils;
 import rx.Observable;
-import rx.util.functions.Func2;
+import rx.functions.Func2;
 
 /** Simple ProxyServer that turns a single request into two remote requests and merges the result */
 public class ProxyServer extends Verticle {

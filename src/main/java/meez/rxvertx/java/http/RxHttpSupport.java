@@ -1,5 +1,7 @@
 package meez.rxvertx.java.http;
 
+import java.io.UnsupportedEncodingException;
+
 import meez.rxvertx.java.RxException;
 import meez.rxvertx.java.RxSupport;
 import org.vertx.java.core.buffer.Buffer;
@@ -8,10 +10,8 @@ import org.vertx.java.core.http.HttpClientResponse;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.json.JsonObject;
 import rx.Observable;
-import rx.util.functions.Action1;
-import rx.util.functions.Func1;
-
-import java.io.UnsupportedEncodingException;
+import rx.functions.Action1;
+import rx.functions.Func1;
 
 /** Utility methods for RxHttpXXX */
 public class RxHttpSupport {

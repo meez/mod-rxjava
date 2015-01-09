@@ -1,13 +1,13 @@
 package meez.rxvertx.java.impl;
 
-import org.vertx.java.core.Handler;
-import rx.Observer;
-import rx.Subscription;
-import rx.subscriptions.Subscriptions;
-import rx.util.functions.Action0;
-import rx.util.functions.Func1;
-
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.vertx.java.core.Handler;
+import rx.Observable;
+import rx.Observer;
+import rx.Subscriber;
+import rx.functions.Action0;
+import rx.subscriptions.Subscriptions;
 
 /** Mapping from Handler to Observer that supports a single subscription and wrapping of the response object.
  *
@@ -18,22 +18,23 @@ import java.util.concurrent.atomic.AtomicReference;
 public abstract class SingleObserverHandler<R, T> implements Handler<T> {
 
   /** Reference to active observer */
-  private AtomicReference<Observer<R>> obRef=new AtomicReference<Observer<R>>();
+  private AtomicReference<Subscriber<? super R>> obRef=new AtomicReference<Subscriber<? super R>>();
 
   /** Subscription function */
-  public Func1<Observer<R>, Subscription> subscribe=new Func1<Observer<R>, Subscription>() {
-    public Subscription call(Observer<R> newObserver) {
-      if (!obRef.compareAndSet(null, newObserver))
-        throw new IllegalStateException("Cannot have multiple subscriptions");
-      register();
-      return Subscriptions.create(unsubscribe);
+  public Observable.OnSubscribe<R> subscribe = new Observable.OnSubscribe<R>() {
+  	@Override
+	public void call(Subscriber<? super R> subscriber) {
+	  if (!obRef.compareAndSet(null, subscriber))
+	    throw new IllegalStateException("Cannot have multiple subscriptions");
+	  register();
+	  subscriber.add(Subscriptions.create(unsubscribe));
     }
   };
 
   /** Unsubscribe action */
   public Action0 unsubscribe = new Action0() {
     public void call() {
-      Observer<R> ob=obRef.getAndSet(null);
+      Observer<? super R> ob=obRef.getAndSet(null);
       if (ob==null)
         throw new IllegalStateException("Unsubscribe without subscribe");
       clear();
@@ -58,7 +59,7 @@ public abstract class SingleObserverHandler<R, T> implements Handler<T> {
   /** Complete the handler */
   public void complete() {
 
-    Observer<R> ob=obRef.get();
+    Observer<? super R> ob=obRef.get();
     // Ignore if no active observer
     if (ob==null)
       return;
@@ -72,7 +73,7 @@ public abstract class SingleObserverHandler<R, T> implements Handler<T> {
   /** Fail the handler - used to handle errors before the handler is called */
   public void fail(Exception e) {
     
-    Observer<R> ob=obRef.get();
+    Observer<? super R> ob=obRef.get();
     // Ignore if no active observer
     if (ob==null)
       return;
@@ -87,7 +88,7 @@ public abstract class SingleObserverHandler<R, T> implements Handler<T> {
 
   public void handle(T value) {
     
-    Observer<R> ob=obRef.get();
+    Observer<? super R> ob=obRef.get();
     // Ignore if no active observer
     if (ob==null)
       return;

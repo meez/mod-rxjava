@@ -25,7 +25,7 @@ public class RxFileSystem implements FileSystem {
   public Observable<Void> copyRx(String s, String s1) {
     AsyncResultMemoizeHandler<Void> rh=new AsyncResultMemoizeHandler<Void>();
     nested.copy(s,s1,rh);
-    return Observable.create(rh);
+    return Observable.create(rh.subscribe);
   }
 
   public Observable<Void> copyRx(String s, String s1, boolean b) {

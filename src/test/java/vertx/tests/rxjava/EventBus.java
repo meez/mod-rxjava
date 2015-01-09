@@ -1,8 +1,10 @@
 package vertx.tests.rxjava;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import meez.rxvertx.java.RxEventBus;
 import meez.rxvertx.java.RxTestSupport;
-import static meez.rxvertx.java.RxTestSupport.*;
 import meez.rxvertx.java.RxVertx;
 import meez.rxvertx.java.pipeline.EventBusPipeline;
 import org.vertx.java.core.buffer.Buffer;
@@ -11,13 +13,11 @@ import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.testframework.TestClientBase;
 import rx.Observable;
-import rx.util.functions.Action0;
-import rx.util.functions.Action1;
-import rx.util.functions.Func1;
+import rx.functions.Action0;
+import rx.functions.Action1;
+import rx.functions.Func1;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import static meez.rxvertx.java.RxTestSupport.toList;
 
 /** EventBus */
 public class EventBus extends TestClientBase {
@@ -56,8 +56,8 @@ public class EventBus extends TestClientBase {
         }
       },
       // onError
-      new Action1<Exception>() {
-        public void call(Exception e) {
+      new Action1<Throwable>() {
+        public void call(Throwable e) {
           System.err.println("Pipeline failed "+e);
           e.printStackTrace(System.err);
           tu.azzert(false);
@@ -90,9 +90,9 @@ public class EventBus extends TestClientBase {
     }
   }
   
-  protected <T> Action1<Message<JsonObject>> checkLoopBack(final T expected) {
-    return new Action1<Message<JsonObject>>() {
-      public void call(Message<JsonObject> in) {
+  protected <T> Action1<Message<T>> checkLoopBack(final T expected) {
+    return new Action1<Message<T>>() {
+      public void call(Message<T> in) {
         System.out.println("loopback("+expected+")="+in.body);
         azzertEquals(expected,in.body);
       }
@@ -187,7 +187,7 @@ public class EventBus extends TestClientBase {
         typeByte),
       completeTest());
     
-    eb.sendRx("sendrx",typeString).subscribe(checkLoopBack(typeJsonObject));
+    eb.sendRx("sendrx",typeString).subscribe(checkLoopBack(typeString));
     eb.sendRx("sendrx",typeJsonObject).subscribe(checkLoopBack(typeJsonObject));
     eb.sendRx("sendrx",typeJsonArray).subscribe(checkLoopBack(typeJsonArray));
     eb.sendRx("sendrx",typeBuffer).subscribe(checkLoopBack(typeBuffer));
@@ -237,12 +237,12 @@ public class EventBus extends TestClientBase {
 
     // Send ping and wait for pong
     eb.sendRx("/test/ping",new JsonObject().putString("msg","ping"))
-      .map(RxTestSupport.traceMap("pipeline:pong"))
+      .map(RxTestSupport.<Message<JsonObject>>traceMap("pipeline:pong"))
       .subscribe(new Action1<Message<JsonObject>>() {
-        public void call(Message<JsonObject> in) {
-          tu.azzert("pong".equals(in.body.getString("msg")));
-          tu.testComplete();
-        }
-      });
+		  public void call(Message<JsonObject> in) {
+			  tu.azzert("pong".equals(in.body.getString("msg")));
+			  tu.testComplete();
+		  }
+	  });
   }
 }

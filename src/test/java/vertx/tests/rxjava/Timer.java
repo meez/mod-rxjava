@@ -1,11 +1,11 @@
 package vertx.tests.rxjava;
 
-import meez.rxvertx.java.RxTimer;
-import org.vertx.java.testframework.TestClientBase;
-import rx.util.functions.Action1;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
+
+import meez.rxvertx.java.RxTimer;
+import org.vertx.java.testframework.TestClientBase;
+import rx.functions.Action1;
 
 import static meez.rxvertx.java.RxTestSupport.*;
 

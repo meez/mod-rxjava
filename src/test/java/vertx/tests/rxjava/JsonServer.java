@@ -10,7 +10,7 @@ import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.deploy.Verticle;
 import org.vertx.java.testframework.TestUtils;
 import rx.Observable;
-import rx.util.functions.Func1;
+import rx.functions.Func1;
 
 /** JsonServer */
 public class JsonServer extends Verticle {

@@ -1,17 +1,5 @@
 package vertx.tests.rxjava;
 
-import meez.rxvertx.java.RxSupport;
-import meez.rxvertx.java.RxVertx;
-import meez.rxvertx.java.io.RxFileSupport;
-import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.file.AsyncFile;
-import org.vertx.java.core.impl.Windows;
-import org.vertx.java.testframework.TestClientBase;
-import org.vertx.java.testframework.TestUtils;
-import rx.subjects.PublishSubject;
-import rx.util.functions.Action0;
-import rx.util.functions.Action1;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -21,6 +9,18 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
+
+import meez.rxvertx.java.RxSupport;
+import meez.rxvertx.java.RxVertx;
+import meez.rxvertx.java.io.RxFileSupport;
+import org.vertx.java.core.buffer.Buffer;
+import org.vertx.java.core.file.AsyncFile;
+import org.vertx.java.core.impl.Windows;
+import org.vertx.java.testframework.TestClientBase;
+import org.vertx.java.testframework.TestUtils;
+import rx.functions.Action0;
+import rx.functions.Action1;
+import rx.subjects.PublishSubject;
 
 /** FileSystem */
 public class FileSystem extends TestClientBase {
@@ -52,8 +52,8 @@ public class FileSystem extends TestClientBase {
     super.stop();
   }
   
-  public Action1<Exception> onTestFailed=new Action1<Exception>() {
-    public void call(Exception e) {
+  public Action1<Throwable> onTestFailed=new Action1<Throwable>() {
+    public void call(Throwable e) {
       System.err.println("Test failure (e="+e+")");
       e.printStackTrace(System.err);
       tu.exception(e,"test failed");

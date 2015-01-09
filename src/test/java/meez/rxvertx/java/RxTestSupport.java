@@ -5,7 +5,9 @@ import java.util.concurrent.CountDownLatch;
 
 import org.vertx.java.testframework.TestUtils;
 import rx.Observer;
-import rx.util.functions.*;
+import rx.functions.Action0;
+import rx.functions.Action1;
+import rx.functions.Func1;
 
 /** RxTestSupport */
 public class RxTestSupport {
@@ -105,9 +107,9 @@ public class RxTestSupport {
     };
   }
 
-  public static Action1<Exception> testFailed(final TestUtils tu) {
-    return new Action1<Exception>() {
-      public void call(Exception e) {
+  public static Action1<Throwable> testFailed(final TestUtils tu) {
+    return new Action1<Throwable>() {
+      public void call(Throwable e) {
         System.err.println("Test failed: "+e);
         e.printStackTrace(System.err);
         tu.azzert(false);
@@ -150,7 +152,7 @@ public class RxTestSupport {
         // Call max once
         idx++;
       }
-      public void onError(Exception e) {
+      public void onError(Throwable e) {
         // Call never
         tu.azzert(false,"Unexpected error (e="+e+")");
         latch.countDown();
@@ -172,7 +174,7 @@ public class RxTestSupport {
         tu.azzert(count==1,"onCompleted() with no value");
         latch.countDown();
       }
-      public void onError(Exception e) {
+      public void onError(Throwable e) {
         tu.azzert(false,"Unexpected error (e="+e+")");
         latch.countDown();
       }
@@ -189,7 +191,7 @@ public class RxTestSupport {
         tu.azzert(false,"Error expected");
       }
       @SuppressWarnings("unchecked")
-      public void onError(Exception e) {
+      public void onError(Throwable e) {
         tu.azzert(errType.isAssignableFrom(e.getClass()));
         System.out.println("Expected error: "+e);
         tu.testComplete();

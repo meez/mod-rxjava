@@ -3,17 +3,17 @@ package meez.rxvertx.java.impl;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.vertx.java.core.Handler;
+import rx.Observable;
 import rx.Observer;
-import rx.Subscription;
+import rx.Subscriber;
+import rx.functions.Action0;
 import rx.subscriptions.Subscriptions;
-import rx.util.functions.Action0;
-import rx.util.functions.Func1;
 
 /** Subject that stores the result of a Handler and notfies all current and future Observers */
 public class MemoizeHandler<R,T> implements Handler<T> {
   
   /** States */
-  enum State { ACTIVE, COMPLETED, FAILED };
+  enum State { ACTIVE, COMPLETED, FAILED }
   
   /** State */
   private State state;
@@ -25,7 +25,7 @@ public class MemoizeHandler<R,T> implements Handler<T> {
   private Exception error;
   
   /** Reference to active observer */
-  private AtomicReference<Observer<R>> obRef=new AtomicReference<Observer<R>>();
+  private AtomicReference<Subscriber<?super R>> obRef=new AtomicReference<Subscriber<? super R>>();
   
   /** Create new MemoizeHandler */
   public MemoizeHandler() {
@@ -35,34 +35,37 @@ public class MemoizeHandler<R,T> implements Handler<T> {
   }
   
   /** Subscription function */
-  public Func1<Observer<R>, Subscription> subscribe=new Func1<Observer<R>, Subscription>() {
-    public Subscription call(Observer<R> newObserver) {
-      // Check if complete
-      switch(state) {
+	public Observable.OnSubscribe<R> subscribe = new Observable.OnSubscribe<R>() {
+		@Override
+		public void call(Subscriber<? super R> newObserver) {
+			// Check if complete
+			switch(state) {
 
-        // Completed. Forward the saved result
-        case COMPLETED:
-          dispatchResult(newObserver,result);
-          return Subscriptions.empty();
-        
-        // Failed already. Forward the saved error
-        case FAILED:
-          dispatchError(newObserver,error);
-          return Subscriptions.empty();
-      }
-      
-      // State=ACTIVE
-      if (!obRef.compareAndSet(null, newObserver))
-        throw new IllegalStateException("Cannot have multiple subscriptions");
-      
-      return Subscriptions.create(unsubscribe);
-    }
-  };
+			// Completed. Forward the saved result
+			case COMPLETED:
+				dispatchResult(newObserver,result);
+				newObserver.add(Subscriptions.empty());
+				return;
+
+			// Failed already. Forward the saved error
+			case FAILED:
+				dispatchError(newObserver,error);
+				newObserver.add(Subscriptions.empty());
+				return;
+			}
+
+			// State=ACTIVE
+			if (!obRef.compareAndSet(null, newObserver))
+				throw new IllegalStateException("Cannot have multiple subscriptions");
+
+			newObserver.add(Subscriptions.create(unsubscribe));
+		}
+	};
 
   /** Unsubscribe action */
   public Action0 unsubscribe=new Action0() {
     public void call() {
-      Observer<R> ob=obRef.getAndSet(null);
+		Subscriber<? super R> ob=obRef.getAndSet(null);
       if (ob==null)
         throw new IllegalStateException("Unsubscribe without subscribe");
     }
@@ -73,7 +76,7 @@ public class MemoizeHandler<R,T> implements Handler<T> {
     this.result=value;
     this.state=State.COMPLETED;
 
-    Observer<R> ob=obRef.get();
+	  Subscriber<? super R> ob=obRef.get();
     // Ignore if no active observer
     if (ob==null)
       return;
@@ -86,7 +89,7 @@ public class MemoizeHandler<R,T> implements Handler<T> {
     this.error=e;
     this.state=State.FAILED;
 
-    Observer<R> ob=obRef.get();
+	  Subscriber<? super R> ob=obRef.get();
     // Ignore if no active observer
     if (ob==null)
       return;
@@ -106,7 +109,7 @@ public class MemoizeHandler<R,T> implements Handler<T> {
   // Implementation
   
   /** Dispatch result */
-  private void dispatchResult(Observer<R> ob, R value) {
+  private void dispatchResult(Subscriber<? super R> ob, R value) {
     try {
       ob.onNext(value);
     }

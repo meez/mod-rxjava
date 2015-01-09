@@ -6,13 +6,16 @@ import java.util.Map;
 
 import meez.rxvertx.java.RxTestSupport;
 import meez.rxvertx.java.RxTimer;
-import meez.rxvertx.java.http.*;
+import meez.rxvertx.java.http.RxHttpClient;
+import meez.rxvertx.java.http.RxHttpServer;
+import meez.rxvertx.java.http.RxHttpServerRequest;
+import meez.rxvertx.java.http.RxHttpSupport;
 import meez.rxvertx.java.pipeline.HttpServerPipeline;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.testframework.TestClientBase;
 import rx.Observable;
-import rx.util.functions.Action1;
-import rx.util.functions.Func2;
+import rx.functions.Action1;
+import rx.functions.Func2;
 
 /** HttpTestClient */
 public class HttpTestClient extends TestClientBase {

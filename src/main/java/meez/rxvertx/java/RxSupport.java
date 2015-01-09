@@ -1,5 +1,9 @@
 package meez.rxvertx.java;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.concurrent.atomic.AtomicLong;
+
 import meez.rxvertx.java.impl.SingleObserverHandler;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.vertx.java.core.Handler;
@@ -9,15 +13,11 @@ import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.core.streams.ReadStream;
 import org.vertx.java.core.streams.WriteStream;
 import rx.Observable;
+import rx.functions.Action0;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.functions.Func2;
 import rx.subjects.PublishSubject;
-import rx.util.functions.Action0;
-import rx.util.functions.Action1;
-import rx.util.functions.Func1;
-import rx.util.functions.Func2;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.concurrent.atomic.AtomicLong;
 
 /** RxSupport */
 public class RxSupport {
@@ -47,8 +47,8 @@ public class RxSupport {
           total.addAndGet(buffer.length());
         }
       },
-      new Action1<Exception>() {
-        public void call(Exception e) {
+      new Action1<Throwable>() {
+        public void call(Throwable e) {
           rx.onError(e);
         }
       },
